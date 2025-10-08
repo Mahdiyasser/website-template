@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>[POST TITLE]</title>
+    <style>
+        body {
+            font-family: "Poppins", sans-serif;
+            background: #0f0f0f;
+            color: #eaeaea;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #181818;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            color: #00ff99;
+            margin-bottom: 10px;
+        }
+
+        .meta {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .bio {
+            font-style: italic;
+            color: #ccc;
+            margin-bottom: 25px;
+            border-left: 3px solid #00ff99;
+            padding-left: 10px;
+        }
+
+        .content {
+            line-height: 1.7;
+            color: #ddd;
+        }
+
+        .images {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .images img {
+            width: 100%;
+            border-radius: 10px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .images img:hover {
+            transform: scale(1.03);
+            opacity: 0.9;
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        a.back {
+            color: #00ff99;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 15px;
+        }
+
+        /* ===== Fullscreen image popup ===== */
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 9999;
+        }
+
+        .popup.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .popup img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .popup span {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            font-size: 2rem;
+            color: #fff;
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>[POST TITLE HERE]</h1>
+        <div class="meta">
+            📅 <span id="date">October 8, 2025</span> |
+            🕓 <span id="time">23:12</span> |
+            📍 <span id="location">Hosh Issa, Beheira, Egypt</span>
+        </div>
+
+        <div class="bio">
+            [Short post bio / summary — e.g., what’s this post about, a one-line thought or setup.]
+        </div>
+
+        <div class="content">
+            <p>
+                [Here’s where you write your “real talk.” Go all in — tell the story, explain your thoughts, add links,
+                whatever.]
+            </p>
+            <p>
+                [You can also break it into multiple paragraphs. The layout will handle everything automatically.]
+            </p>
+        </div>
+
+        <div class="images">
+            <img src="/assets/images/example1.jpg" alt="Example image 1">
+            <img src="/assets/images/example2.jpg" alt="Example image 2">
+            <!-- add/remove images freely -->
+        </div>
+
+        <footer>
+            <a href="/blog/index.html" class="back">← Back to Blog</a>
+        </footer>
+    </div>
+
+    <!-- fullscreen image popup -->
+    <div class="popup" id="popup">
+        <span id="close">&times;</span>
+        <img src="" alt="popup image" id="popup-img">
+    </div>
+
+    <script>
+        const popup = document.getElementById('popup');
+        const popupImg = document.getElementById('popup-img');
+        const close = document.getElementById('close');
+
+        document.querySelectorAll('.images img').forEach(img => {
+            img.addEventListener('click', () => {
+                popup.classList.add('active');
+                popupImg.src = img.src;
+            });
+        });
+
+        close.addEventListener('click', () => popup.classList.remove('active'));
+        popup.addEventListener('click', (e) => {
+            if (e.target === popup) popup.classList.remove('active');
+        });
+    </script>
+</body>
+
+</html>

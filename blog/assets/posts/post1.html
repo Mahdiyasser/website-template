@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>1st Post</title>
+    <style>
+        body {
+            font-family: "Poppins", sans-serif;
+            background: #0f0f0f;
+            color: #eaeaea;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #181818;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            color: #00ff99;
+            margin-bottom: 10px;
+        }
+
+        .meta {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .bio {
+            font-style: italic;
+            color: #ccc;
+            margin-bottom: 25px;
+            border-left: 3px solid #00ff99;
+            padding-left: 10px;
+        }
+
+        .content {
+            line-height: 1.7;
+            color: #ddd;
+        }
+
+        .images {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .images img {
+            width: 100%;
+            border-radius: 10px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .images img:hover {
+            transform: scale(1.03);
+            opacity: 0.9;
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        a.back {
+            color: #00ff99;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 15px;
+        }
+
+        /* ===== Fullscreen image popup ===== */
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 9999;
+        }
+
+        .popup.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .popup img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .popup span {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            font-size: 2rem;
+            color: #fff;
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>1st Post</h1>
+        <div class="meta">
+            📅 <span id="date">October 8, 2025</span> |
+            🕓 <span id="time">02:05-AM</span> |
+            📍 <span id="location">Hosh Issa, Beheira, Egypt</span>
+        </div>
+
+        <div class="bio">
+            this post is the sign that i finaly made the blog actually work
+        </div>
+
+        <div class="content">
+            <p>
+                so this post isnt just a normall post because the blog is now online anyway the projects is still not
+                done yet
+                but iam actully working on it now as iam posting this and its actually simple i will take the exact
+                same engineering for the blog and edit it a bit so it do the job.
+            </p>
+            <p>
+                the projects section is like the blog but for a specific use which is gathering all the posts that
+                have the same goal which is the same project and make for them their own little blog
+                it will be diffrent not because i posted something here you will find it in the projects
+                no thats not how it work the projects will be dedicated for only the projects and thats it.
+            </p>
+        </div>
+
+        <div class="images">
+            <img src="/blog/assets/images/1st-post/1st-post1.jpg" alt="image1">
+
+            <!-- add/remove images freely -->
+        </div>
+
+        <footer>
+            <a href="/blog/index.html" class="back">← Back to Blog</a>
+        </footer>
+    </div>
+
+    <!-- fullscreen image popup -->
+    <div class="popup" id="popup">
+        <span id="close">&times;</span>
+        <img src="" alt="popup image" id="popup-img">
+    </div>
+
+    <script>
+        const popup = document.getElementById('popup');
+        const popupImg = document.getElementById('popup-img');
+        const close = document.getElementById('close');
+
+        document.querySelectorAll('.images img').forEach(img => {
+            img.addEventListener('click', () => {
+                popup.classList.add('active');
+                popupImg.src = img.src;
+            });
+        });
+
+        close.addEventListener('click', () => popup.classList.remove('active'));
+        popup.addEventListener('click', (e) => {
+            if (e.target === popup) popup.classList.remove('active');
+        });
+    </script>
+</body>
+
+</html>
