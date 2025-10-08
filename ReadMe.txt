@@ -24,7 +24,7 @@ and also there is 2 cards that i use to point to the blog and the projects secti
 6- there is built-in metas in the head of the main index file that will make your site appear super fast on GSC if you send a request that only takes minutes but you must edit the metas because they are set to me so you have to look at them and edit them and
 if you dont think you can do it you can just call a friend or use chatgpt 
 and thats it i also dont recomind editing the files that are css or js because it might ruin your site and also i strongly recomind only editing the stuff that was made to be edited and thats it this all you need to make you own website with a blog and a projects section
-i also strongly suggest using chatgpt if you have 0 experinse in html and meta tags thats it for non devolpers and if you love this website follow me on github (https://github.com/Mahdiyasesr).
+i also strongly suggest using chatgpt if you have 0 experinse in html and meta tags thats it for non devolpers and if you love this website follow me on github (https://github.com/Mahdiyasser).
 -
 -
 -
