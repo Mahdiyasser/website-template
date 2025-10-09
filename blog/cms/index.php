@@ -1,5 +1,5 @@
 <?php
-// Post Maker - Absolute /blog/ Path Edition
+// Post Maker - Absolute 
 // by Mahdi & ChatGPT
 
 ini_set('display_errors', 1);
@@ -34,7 +34,44 @@ if(count($errors) === 0 && !is_writable($postsDir)) $errors[] = "Posts folder no
 if(count($errors) === 0 && !is_writable($imagesBase)) $errors[] = "Images base folder not writable: $imagesBase";
 if(count($errors) === 0 && !is_writable($jsonFile)) $errors[] = "JSON file not writable: $jsonFile";
 
-if($_SERVER['REQUEST_METHOD'] === 'POST' && count($errors) === 0){
+// === DELETE POST ===
+if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_post']) && !empty($_POST['delete_post'])){
+    $slugToDelete = $_POST['delete_post'];
+
+    // Read posts.json
+    $postsArr = json_decode(file_get_contents($jsonFile), true);
+    if(!is_array($postsArr)) $postsArr = [];
+
+    $found = false;
+    foreach($postsArr as $i => $post){
+        $basename = pathinfo($post['file'] ?? '', PATHINFO_FILENAME);
+        if($basename === $slugToDelete){
+            $found = true;
+
+            // Delete post HTML file
+            $postFilePath = $postsDir . '/' . $slugToDelete . '.html';
+            if(file_exists($postFilePath)) unlink($postFilePath);
+
+            // Delete post images folder
+            $postImagesDir = $imagesBase . '/' . $slugToDelete;
+            if(is_dir($postImagesDir)){
+                $files = glob($postImagesDir . '/*');
+                foreach($files as $f) if(is_file($f)) unlink($f);
+                rmdir($postImagesDir);
+            }
+
+            // Remove from posts.json
+            array_splice($postsArr, $i, 1);
+            file_put_contents($jsonFile, json_encode($postsArr, JSON_PRETTY_PRINT));
+            $message = "🗑️ Post '$slugToDelete' deleted successfully!";
+            break;
+        }
+    }
+    if(!$found) $errors[] = "Post not found: $slugToDelete";
+}
+
+// === CREATE POST ===
+if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && count($errors) === 0){
     $title = trim($_POST['title'] ?? '');
     $date = trim($_POST['date'] ?? date('Y-m-d'));
     $time = trim($_POST['time'] ?? date('H:i'));
@@ -234,7 +271,7 @@ HTML;
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fucked Up CMS</title>
+<title>CMS</title>
 <style>
 body{font-family:'Poppins',sans-serif;background:#0f0f0f;color:#eaeaea;padding:18px;}
 .container{max-width:900px;margin:0 auto;}
@@ -288,6 +325,29 @@ if(count($errors)>0){
 
 <button type="submit">Create Post</button>
 </form>
+
+<hr>
+<h2>Existing Posts</h2>
+<?php
+$postsArr = json_decode(file_get_contents($jsonFile), true);
+if(is_array($postsArr) && count($postsArr) > 0){
+    echo '<ul>';
+    foreach($postsArr as $p){
+        $slug = pathinfo($p['file'], PATHINFO_FILENAME);
+        $title = htmlspecialchars($p['title']);
+        echo '<li style="margin-bottom:6px;">';
+        echo "$title ";
+        echo '<form method="POST" style="display:inline;" onsubmit="return confirm(\'Delete this post?\');">';
+        echo '<input type="hidden" name="delete_post" value="'.$slug.'">';
+        echo '<button type="submit" style="background:#ff4d4d;color:#fff;">Delete</button>';
+        echo '</form></li>';
+    }
+    echo '</ul>';
+}else{
+    echo '<p>No posts yet.</p>';
+}
+?>
+
 <hr>
 <small>Enjoy Making Great Things</small>
 </div>
