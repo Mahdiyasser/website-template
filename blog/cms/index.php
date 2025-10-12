@@ -712,28 +712,15 @@ if(!isset($editData) || $editData === null){
 
 // Load any message from GET (after PRG)
 if(isset($_GET['msg'])) $message = htmlspecialchars($_GET['msg']);
+
+// Start HTML output
 ?>
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CMS</title>
-<style>
-body{font-family:'Poppins',sans-serif;background:#0f0f0f;color:#eaeaea;padding:18px;}
-.container{max-width:900px;margin:0 auto;}
-input,textarea{width:100%;padding:8px;margin:8px 0;border-radius:6px;border:none;background:#1b1b1b;color:#eaeaea;}
-label{font-weight:bold;margin-top:10px;display:block;}
-button{background:#00ff99;color:#000;border:none;padding:10px 16px;border-radius:6px;cursor:pointer;font-weight:700;}
-button.danger{background:#ff4d4d;color:#fff;}
-.message{background:#0b3119;color:#bff6d9;padding:10px;border-radius:6px;margin:12px 0;}
-.error{background:#321313;color:#ffbdbd;padding:10px;border-radius:6px;margin:12px 0;}
-.smallbtn{display:inline-block;background:#444;color:#fff;padding:8px 12px;border-radius:6px;text-decoration:none;margin-left:8px;}
-.images-preview img{max-width:120px;margin-right:8px;border-radius:6px;border:2px solid #222;display:inline-block;vertical-align:middle;}
-.img-item{display:inline-block;margin-right:8px;margin-bottom:8px;vertical-align:top;}
-.img-item form{display:inline;}
-.delete-check{display:block;text-align:center;font-size:12px;color:#ccc;}
-.thumb-preview{max-width:160px;border-radius:6px;border:2px solid #222;display:block;margin-bottom:8px;}
-</style>
+<link rel="stylesheet" href="cms.css">
 </head>
 <body>
 <div class="container">
@@ -825,6 +812,7 @@ if(count($errors)>0){
 <hr>
 <h2>Existing Posts</h2>
 <?php
+// Reload for display in case the POST failed and postsArr was modified inside
 $postsArr = json_decode(file_get_contents($jsonFile), true);
 if(is_array($postsArr) && count($postsArr) > 0){
     echo '<ul>';
@@ -850,15 +838,6 @@ if(is_array($postsArr) && count($postsArr) > 0){
 <small>Enjoy Making Great Things</small>
 </div>
 
-<script>
-// Clear client-side inputs and also clear server-side saved form data
-function clearForm(){
-  document.querySelectorAll('#postForm input[type=text], #postForm input[type=date], #postForm input[type=time], #postForm textarea').forEach(el=>el.value='');
-  document.querySelectorAll('#postForm input[type=file]').forEach(el=>el.value=null);
-  // request server to clear session-saved form data
-  window.location = window.location.pathname + '?clear=1';
-}
-</script>
+<script src="cms.js"></script>
 </body>
 </html>
-
