@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CMS — Posts</title>
+    <link rel="stylesheet" href="post-cms.css">
+
+</head>
+
+<body>
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="brand">
+            <h1>📝 Posts CMS</h1>
+            <p class="muted">Create · Edit · Delete posts </p>
+        </div>
+        <div class="actions-top">
+            <a class="btn ghost" href="index.html">← Projects CMS</a>
+            <a class="btn" href="/projects/index.html" target="_blank">Open Frontend</a>
+        </div>
+    </header>
+
+    <main class="layout">
+        <!-- Left panel -->
+        <aside class="left">
+            <div class="panel">
+                <h3>Actions</h3>
+                <button id="btnNew" class="action">+ New Post</button>
+                <button id="btnShowAll" class="action">📄 Show All Posts</button>
+                <hr>
+                <label class="small">Filter by project</label>
+                <select id="filterProject"></select>
+                <label class="small">Search title</label>
+                <input id="searchInput" class="input" placeholder="search posts..." />
+                <hr>
+                <div class="small">Quick links</div>
+                <a href="/projects/index.html" class="small-link" target="_blank">/projects/index.html</a>
+                <a href="/projects/cms" class="small-link" target="_blank">/projects/cms</a>
+            </div>
+
+        </aside>
+
+        <!-- Right panel -->
+        <section class="right">
+            <div id="mainPanel" class="panel">
+                <div class="list-header">
+                    <h2 id="pageTitle">Posts</h2>
+                    <div id="postsStats" class="muted"></div>
+                </div>
+
+                <!-- posts grid -->
+                <div id="postsGrid" class="grid"></div>
+
+                <!-- create/edit form (hidden until needed) -->
+                <div id="formWrap" class="form hidden">
+                    <div class="form-head">
+                        <h2 id="formTitle">Create Post</h2>
+                        <button id="btnCloseForm" class="btn ghost">Close</button>
+                    </div>
+
+                    <form id="postForm" enctype="multipart/form-data" autocomplete="off">
+                        <input type="hidden" id="editMode" value="0">
+                        <input type="hidden" id="originalTitle" value="">
+
+                        <label>Project (choose)</label>
+                        <select id="postProject" required></select>
+
+                        <label>Title</label>
+                        <input id="postTitle" required class="input" placeholder="Launch Day">
+
+                        <label>Short Bio</label>
+                        <input id="postBio" class="input" placeholder="Short description">
+
+                        <div class="row">
+                            <div class="col">
+                                <label>Date</label>
+                                <input id="postDate" type="date" class="input">
+                            </div>
+                            <div class="col">
+                                <label>Time</label>
+                                <input id="postTime" type="time" class="input">
+                            </div>
+                        </div>
+
+                        <label>Location (optional)</label>
+                        <input id="postLocation" class="input" placeholder="Hosh Issa, Beheira, Egypt">
+
+                        <label>Content (plain text or raw HTML)</label>
+                        <textarea id="postContent" class="textarea"
+                            placeholder="Write text or paste HTML..."></textarea>
+
+                        <div class="editor-toolbar">
+                            <button type="button" id="btnBold" class="tool">B</button>
+                            <button type="button" id="btnItalic" class="tool">I</button>
+                            <button type="button" id="btnLink" class="tool">Link</button>
+                            <button type="button" id="btnIframe" class="tool">Iframe</button>
+                        </div>
+
+                        <label>Video links (one per line — YouTube or embed src)</label>
+                        <textarea id="postVideos" class="textarea"
+                            placeholder="https://www.youtube.com/watch?v=..."></textarea>
+
+                        <label>Thumbnail (optional)</label>
+                        <input id="postThumbnail" type="file" accept="image/*">
+
+                        <label>Images (optional, multiple)</label>
+                        <input id="postImages" type="file" accept="image/*" multiple>
+
+                        <div class="form-actions">
+                            <button id="btnSave" class="btn primary" type="submit">Save Post</button>
+                            <button id="btnCancel" class="btn ghost" type="button">Cancel</button>
+                            <button id="btnPreview" class="btn" type="button">Preview</button>
+                        </div>
+                    </form>
+
+                    <div id="previewWrap" class="preview hidden">
+                        <h3>Preview</h3>
+                        <div id="previewArea" class="post-preview"></div>
+                        <button id="btnHidePreview" class="btn ghost">Hide Preview</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="post-cms.js"></script>
+</body>
+
+</html>
