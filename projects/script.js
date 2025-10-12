@@ -163,7 +163,6 @@ function attachEvents() {
         closePostsView();
     });
 
-    openCms.addEventListener('click', () => { window.location.href = './cms/index.html'; });
     backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 }
 
