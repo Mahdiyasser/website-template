@@ -1,0 +1,674 @@
+/* ------------------------------------------------------------------ */
+/* CUSTOM COLOR SCHEMES & VARIABLES */
+/* ------------------------------------------------------------------ */
+
+:root {
+    /* DARK THEME (Alive & Vibrant) */
+    --background-color: #0D0D0D;
+    --text-color: #E0E0E0;
+    --card-background: #1A1A1A;
+    --card-border: rgba(255, 255, 255, 0.25);
+
+    --color-babyblue: #A0DFFF;
+    /* Brighter Baby Blue */
+    --color-purple: #D3A5FF;
+    /* Brighter Purple, stronger glow base */
+
+    --header-background: var(--background-color);
+    --header-border: var(--color-purple);
+    --header-shadow: 0 0 10px rgba(211, 165, 255, 0.5);
+    /* Subtle glow on header */
+    --pre-background: rgba(255, 255, 255, 0.08);
+    --highlight-bg: rgba(211, 165, 255, 0.3);
+
+    /* Star Mode Colors (5 Modes) */
+    --star-red: #ff3333;
+    /* Mode 1: Red */
+    --star-green: #39ff14;
+    /* Mode 2: Green Neon */
+    --star-purple: #cc66ff;
+    /* Mode 3: Purple */
+    --star-silver: #c0c0c0;
+    /* Mode 4: Silver */
+    --star-golden: #ffdb58;
+    /* Mode 5: Golden */
+    --color-empty-star: var(--card-border);
+
+    /* Status Colors (1-10) */
+    --status-1-red: #ff3333;
+    --status-2-green: #39ff14;
+    --status-3-blue: #0099ff;
+    --status-4-yellow: #ffff00;
+    --status-5-pink: #ff66cc;
+    --status-6-cyan: #00ffff;
+    --status-7-orange: #ff9900;
+    --status-8-lime: #bfff00;
+    --status-9-purple: #9d83ff;
+    --status-10-gold: #ffdb58;
+}
+
+body[data-theme="light"] {
+    /* LIGHT THEME */
+    --background-color: #f9f9f9;
+    --text-color: #1a1a1a;
+    --card-background: #ffffff;
+    --card-border: rgba(0, 0, 0, 0.15);
+
+    --color-babyblue: #006ebf;
+    --color-purple: #6c4af5;
+
+    --header-background: var(--background-color);
+    --header-border: var(--color-purple);
+    --pre-background: #eeeeee;
+    --highlight-bg: rgba(108, 74, 245, 0.15);
+    --color-empty-star: var(--card-border);
+}
+
+/* ------------------------------------------------------------------ */
+/* GLOBAL STYLES & HEADER LAYOUT */
+/* ------------------------------------------------------------------ */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    transition: all 0.5s ease-in-out;
+}
+
+.dashboard-header {
+    position: relative;
+    text-align: center;
+    padding: 30px 20px;
+    background: var(--header-background);
+    border-bottom: 3px solid var(--header-border);
+    /* Use strong shadow and accent glow for an "alive" feel in dark mode */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6), var(--header-shadow);
+    transition: all 0.5s ease-in-out;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-size: 2.5em;
+    color: var(--color-babyblue);
+    text-align: center;
+}
+
+/* HIDE all helper inputs and labels */
+.data-label,
+#star-count-number,
+#status-color-selector,
+#star-mode-selector {
+    display: none !important;
+}
+
+
+/* Top Right Container: Status Text and Theme Toggle */
+.top-right-controls {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* ------------------------------------------------------------------ */
+/* CARD TITLE COLORS */
+/* ------------------------------------------------------------------ */
+
+/* What's New ✨ - Bright, energetic color */
+.card[data-card="new"] h2 {
+    color: #00ffaa;
+    text-shadow: 0 0 5px rgba(0, 255, 170, 0.5);
+    transition: color 0.3s;
+}
+
+/* Developer Notes 📝 - Analytical, classic color */
+.card[data-card="dev"] h2 {
+    color: var(--color-purple);
+    text-shadow: 0 0 5px var(--color-purple);
+    transition: color 0.3s;
+}
+
+/* What Needs to be Fixed 🛠️ - Urgency/Warning color */
+.card[data-card="fixed"] h2 {
+    color: #ffaa00;
+    text-shadow: 0 0 5px rgba(255, 170, 0, 0.5);
+    transition: color 0.3s;
+}
+
+/* ------------------------------------------------------------------ */
+/* STAR RATING DISPLAY (TOP LEFT POSITIONING) */
+/* ------------------------------------------------------------------ */
+
+#star-rating {
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+
+    font-size: 2.2em;
+    letter-spacing: 5px;
+}
+
+/* Keyframe for the shimmering aura/shine effect */
+@keyframes star-aura {
+    0% {
+        text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+    }
+
+    50% {
+        text-shadow: 0 0 8px currentColor, 0 0 15px currentColor;
+    }
+
+    100% {
+        text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+    }
+}
+
+#star-rating span {
+    position: relative;
+    display: inline-block;
+    color: inherit;
+    transition: color 0.3s ease;
+}
+
+/* Note: Since we only render the required stars, these classes determine if a star is full, half, or an empty placeholder. */
+#star-rating span.empty {
+    color: var(--color-empty-star);
+    opacity: 0.3;
+}
+
+/* Apply aura to filled and half-stars */
+#star-rating span.full,
+#star-rating span.half::before {
+    animation: star-aura 2s ease-in-out infinite alternate;
+}
+
+/* HALF STAR LOGIC: Shows the empty star with a clipped filled star on top */
+#star-rating span.half {
+    color: var(--color-empty-star);
+    opacity: 0.3;
+}
+
+#star-rating span.half::before {
+    content: "★";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50%;
+    /* Only show the left half */
+    overflow: hidden;
+    color: inherit;
+    /* Inherits the mode color */
+    opacity: 1;
+}
+
+
+/* --- STAR MODE COLOR RULES --- */
+
+/* Mode 1: Red */
+#star-rating.star-mode-1 {
+    color: var(--star-red);
+}
+
+/* Mode 2: Green Neon (Enhanced glow/shine) */
+#star-rating.star-mode-2 {
+    color: var(--star-green);
+    filter: drop-shadow(0 0 5px var(--star-green));
+}
+
+/* Mode 3: Purple */
+#star-rating.star-mode-3 {
+    color: var(--star-purple);
+}
+
+/* Mode 4: Silver (Metallic shine effect) */
+#star-rating.star-mode-4 {
+    color: var(--star-silver);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Mode 5: Golden (Rich gold glow) */
+#star-rating.star-mode-5 {
+    color: var(--star-golden);
+    text-shadow: 0 0 10px var(--star-golden), 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+
+/* ------------------------------------------------------------------ */
+/* STATUS TEXT & COLOR LOGIC (50% LARGER: 1.65em) */
+/* ------------------------------------------------------------------ */
+
+#status-text {
+    /* Correct size: 50% larger than 1.1em is 1.65em */
+    font-size: 1.65em;
+    font-weight: bold;
+    padding: 0;
+    transition: all 0.3s ease;
+    color: var(--text-color);
+    margin-right: 15px;
+}
+
+/* Animation Keyframes */
+@keyframes pulse-slow {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes flash-fast {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    25%,
+    75% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes rainbow-wave {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+/* General Status Mode Styling: Apply color and text shadow (aura) */
+#status-text[class*="status-mode-"] {
+    text-shadow: 0 0 5px currentColor, 0 0 10px rgba(0, 0, 0, 0.5);
+    background: none;
+}
+
+/* --- STATUS MODE COLOR AND ANIMATION RULES --- */
+
+/* Mode 1: Red (Urgent Pulse) */
+#status-text.status-mode-1 {
+    color: var(--status-1-red);
+    animation: pulse-slow 1.5s infinite;
+}
+
+/* Mode 2: Green (Steady Normal) */
+#status-text.status-mode-2 {
+    color: var(--status-2-green);
+    text-shadow: 0 0 4px var(--status-2-green);
+    animation: none;
+}
+
+/* Mode 3: Blue (Worrying Pulse) */
+#status-text.status-mode-3 {
+    color: var(--status-3-blue);
+    animation: pulse-slow 3s infinite;
+}
+
+/* Mode 4: Yellow (Warning Flash) */
+#status-text.status-mode-4 {
+    color: var(--status-4-yellow);
+    animation: flash-fast 1s infinite step-end;
+}
+
+/* Mode 5: Pink (Subtle Fade) */
+#status-text.status-mode-5 {
+    color: var(--status-5-pink);
+    animation: pulse-slow 5s infinite;
+}
+
+/* Mode 6: Cyan (Shimmer) */
+#status-text.status-mode-6 {
+    color: var(--status-6-cyan);
+    text-shadow: 0 0 10px var(--status-6-cyan), 0 0 20px rgba(0, 255, 255, 0.3);
+    animation: star-aura 4s infinite;
+}
+
+/* Mode 7: Orange (Solid Warning) */
+#status-text.status-mode-7 {
+    color: var(--status-7-orange);
+    animation: none;
+}
+
+/* Mode 8: Lime (Bright Status) */
+#status-text.status-mode-8 {
+    color: var(--status-8-lime);
+    text-shadow: 0 0 15px var(--status-8-lime);
+    animation: none;
+}
+
+/* Mode 9: Purple (Mystic) */
+#status-text.status-mode-9 {
+    color: var(--status-9-purple);
+    animation: pulse-slow 7s infinite;
+}
+
+/* Mode 10: Gold (Rainbow Gradient) */
+#status-text.status-mode-10 {
+    background: linear-gradient(90deg, var(--status-1-red), var(--status-7-orange), var(--status-4-yellow), var(--status-2-green), var(--status-3-blue), var(--status-9-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 400% 400%;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+    animation: rainbow-wave 4s linear infinite, pulse-slow 2s infinite alternate;
+}
+
+/* ------------------------------------------------------------------ */
+/* CARD LAYOUT & FULLSCREEN */
+/* ------------------------------------------------------------------ */
+.dashboard-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding: 40px;
+    max-width: 800px;
+    width: 90%;
+    margin: 40px auto;
+}
+
+.card {
+    background-color: var(--card-background);
+    padding: 25px;
+    border-radius: 12px;
+    /* Use strong shadow for deep contrast */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+    transition: all 0.3s ease;
+    border: 1px solid var(--card-border);
+    cursor: pointer;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    transition: transform 360ms cubic-bezier(.2, .9, .2, 1),
+        box-shadow 360ms cubic-bezier(.2, .9, .2, 1),
+        width 360ms cubic-bezier(.2, .9, .2, 1),
+        height 360ms cubic-bezier(.2, .9, .2, 1),
+        top 360ms cubic-bezier(.2, .9, .2, 1),
+        left 360ms cubic-bezier(.2, .9, .2, 1);
+    will-change: transform, width, height, top, left;
+    z-index: 1;
+}
+
+.card pre {
+    background-color: var(--pre-background);
+    border-left: 5px solid var(--color-purple);
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 0.95em;
+    padding: 15px;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.card pre .highlight-note {
+    color: var(--color-purple);
+    font-weight: bold;
+    background-color: var(--highlight-bg);
+    display: block;
+    padding: 3px 0;
+    margin: 5px 0;
+}
+
+
+/* FULLSCREEN MODE & EXIT BUTTON */
+
+.fullscreen-active .dashboard-header,
+.fullscreen-active .dashboard-grid> :not(.fullscreen) {
+    display: none;
+}
+
+.exit-btn {
+    display: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--color-purple);
+    color: var(--text-color);
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    z-index: 1001;
+    justify-content: center;
+    align-items: center;
+}
+
+.card.fullscreen .exit-btn {
+    display: flex;
+}
+
+.card.fullscreen {
+    position: fixed;
+    top: 4vh;
+    left: 4vw;
+    width: 92vw;
+    height: 92vh;
+    transform: none;
+    z-index: 9999;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    border-radius: 8px;
+    overflow-y: auto;
+    padding: 40px;
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+}
+
+/* optional class used during animation (keeps GPU hints) */
+.card.animating {
+    will-change: transform, width, height, top, left;
+}
+
+/* optional body class to dim background when a card is fullscreen */
+body.fullscreen-active {
+    overflow: hidden;
+}
+
+/* Instant toggle helper: disable transitions briefly when needed */
+.no-transitions .card {
+    transition: none !important;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 18px 12px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .dashboard-grid {
+        padding: 16px;
+        gap: 16px;
+        width: 95%;
+        margin: 20px auto;
+    }
+
+    .top-right-controls {
+        position: static;
+        top: auto;
+        right: auto;
+        transform: none;
+        margin: 8px 0 0;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    #star-rating {
+        position: static;
+        transform: none;
+        left: auto;
+        top: auto;
+        font-size: 1.2em;
+        margin: 0 0 8px 0;
+        letter-spacing: 3px;
+    }
+
+    .card {
+        padding: 16px;
+        border-radius: 10px;
+    }
+
+    .card pre {
+        max-height: 50vh;
+        font-size: 0.92em;
+    }
+
+    .exit-btn {
+        top: 12px;
+        right: 12px;
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+    }
+}
+
+/* Extra small phones */
+@media (max-width: 420px) {
+    .dashboard-grid {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.2rem;
+    }
+
+    #star-rating {
+        font-size: 1.05em;
+        letter-spacing: 2px;
+    }
+
+    .card pre {
+        font-size: 0.88em;
+        max-height: 60vh;
+        padding: 12px;
+    }
+
+    .card.fullscreen {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: calc(12px + env(safe-area-inset-top));
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    body {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* Ensure fullscreen card sits above everything on small screens */
+@media (max-width: 768px) {
+
+    .fullscreen-active .dashboard-header,
+    .fullscreen-active .dashboard-grid> :not(.fullscreen) {
+        display: none;
+    }
+
+    .card.fullscreen {
+        z-index: 10000;
+        overflow-y: auto;
+    }
+}
+
+/* Small-box-sizing + viewport / mobile niceties */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Prevent accidental horizontal scroll caused by fixed widths / transforms */
+html,
+body {
+    max-width: 100vw;
+    overflow-x: hidden;
+    /* hides right-side scroll while allowing vertical scroll */
+    -webkit-text-size-adjust: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Make sure main container never exceeds viewport width */
+.dashboard-grid {
+    width: 100%;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Ensure card/fullscreen sizing uses box-sizing and never extends past viewport */
+.card,
+.card.fullscreen {
+    box-sizing: border-box;
+    max-width: 100vw;
+}
+
+/* Use safe-area and full width for fullscreen on small devices */
+.card.fullscreen {
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100vw;
+    padding-left: calc(16px + env(safe-area-inset-left));
+    padding-right: calc(16px + env(safe-area-inset-right));
+}
+
+/* Prevent <pre> from pushing layout horizontally */
+.card pre {
+    white-space: pre-wrap;
+    /* already set, reinforce for mobile */
+    overflow-x: auto;
+    /* allow horizontal scroll inside the block only */
+    -webkit-overflow-scrolling: touch;
+    word-break: break-word;
+    max-width: 100%;
+}
+
+/* Small-screen tweak: ensure absolute positioned UI doesn't overflow */
+@media (max-width: 768px) {
+    #star-rating {
+        position: static;
+        max-width: 100%;
+        overflow: hidden;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    .top-right-controls {
+        position: static;
+        width: 100%;
+    }
+}
+
+/* Extra guard for very small screens */
+@media (max-width: 420px) {
+    .dashboard-grid {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    body {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}

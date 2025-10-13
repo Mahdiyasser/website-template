@@ -1,0 +1,5 @@
+in the projects section CMS we need to fix the edit in projects and posts because the current one when you 
+change the thumbnail it doesnt delete the new one and also we need to add a feature to delete certain images
+and for the projects section it self we need to edit the css of the main page so it looks better when 
+loading posts or projects because it looks so bad when there is less than 4 posts or projects and thats it for now 
+

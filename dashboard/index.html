@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body data-theme="dark">
+
+    <header class="dashboard-header">
+
+        <div id="star-rating"></div>
+
+        <div id="star-count-number" style="display: none;">5</div>
+        <div id="star-mode-selector" style="display: none;">2</div>
+
+        <h1>Website Status Dashboard</h1>
+
+        <div class="top-right-controls">
+            <div id="status-text">STATUS:NORMAL</div>
+
+            <div id="status-color-selector" style="display: none;">2</div>
+
+            <button id="theme-toggle" aria-label="Toggle Dark/Light Theme"></button>
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+
+        <section class="card" data-card="new">
+            <button class="exit-btn" aria-label="Exit Fullscreen">&times;</button>
+            <h2>What's New ✨</h2>
+            <pre id="new-content" class="highlightable-content">Loading new features...</pre>
+        </section>
+
+        <section class="card" data-card="dev">
+            <button class="exit-btn" aria-label="Exit Fullscreen">&times;</button>
+            <h2>Developer Notes 📝</h2>
+            <pre id="devnotes-content" class="highlightable-content">Loading notes...</pre>
+        </section>
+
+        <section class="card" data-card="fixed">
+            <button class="exit-btn" aria-label="Exit Fullscreen">&times;</button>
+            <h2>What Needs to be Fixed 🛠️</h2>
+            <pre id="fixed-content" class="highlightable-content">Loading fixes...</pre>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
