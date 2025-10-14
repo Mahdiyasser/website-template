@@ -1,30 +1,42 @@
-function loadStyle() {
-  // Remove old stylesheet if exists
-  const oldLink = document.getElementById("dynamic-style");
-  if (oldLink) oldLink.remove();
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleButton = document.getElementById('theme-toggle');
+    const body = document.body;
+    const toggleIcon = document.getElementById('toggle-icon');
 
-  // Create new link
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.id = "dynamic-style";
+    // 1. Check local storage for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    
+    // 2. Function to apply the theme
+    const applyTheme = (theme) => {
+        if (theme === 'light') {
+            body.classList.add('light-theme');
+            toggleIcon.textContent = '🌙'; // Moon icon for light mode (click to go dark)
+        } else {
+            body.classList.remove('light-theme');
+            toggleIcon.textContent = '💡'; // Lightbulb icon for dark mode (click to go light)
+        }
+    };
 
-  // Pick stylesheet
-  const aspect = window.innerWidth / window.innerHeight;
-  if (aspect >= 1) {
-    // Landscape → Desktop
-    link.href = "style1.css";
-  } else {
-    // Portrait → Mobile
-    link.href = "style2.css";
-  }
+    // 3. Apply the saved theme or default to dark
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    } else {
+        // Optional: Check system preference (prefers-color-scheme)
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+            applyTheme('light');
+        } else {
+            applyTheme('dark');
+        }
+    }
 
-  // Add it to head
-  document.head.appendChild(link);
-}
-
-// Run on page load
-window.addEventListener("load", loadStyle);
-
-// Run on resize/orientation change
-window.addEventListener("resize", loadStyle);
-
+    // 4. Add event listener to toggle the theme
+    toggleButton.addEventListener('click', () => {
+        const currentTheme = body.classList.contains('light-theme') ? 'light' : 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        applyTheme(newTheme);
+        
+        // Save the new preference to local storage
+        localStorage.setItem('theme', newTheme);
+    });
+});

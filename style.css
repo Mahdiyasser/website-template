@@ -1,0 +1,417 @@
+/*
+  CYBER GRID / HIGH-TECH DARK MODE CSS (LOCAL FONTS ONLY)
+  - FIX: Adjusted .d1 padding and structure to ensure perfect centering and
+         visibility of all margins on mobile screens.
+*/
+
+:root {
+    /* Color Palette - DARK MODE (DEFAULT) */
+    --bg-primary: #0a0a0a;       
+    --bg-content: rgba(0, 0, 0, 0.75); /* Reduced opacity for better background visibility */
+    --accent-neon: #00ffc8;      
+    --text-primary: #f0f0f0;     
+    --text-secondary: #00885f;   
+    --grid-line: rgba(0, 255, 200, 0.2); 
+    --glow-shadow: 0 0 10px rgba(0, 255, 200, 0.7); 
+    --box-shadow-card: 0 0 15px rgba(0, 255, 200, 0.2);
+    --filter-pfp: invert(0);    
+    --filter-social: invert(1); 
+
+    /* Typography - USING LOCAL FONTS */
+    --font-primary: 'Consolas', 'Courier New', monospace; 
+    --font-secondary: 'Arial', sans-serif; 
+
+    /* Spacing and Sizing */
+    --spacing-lg: 4rem;
+    --spacing-md: 2rem;
+    --spacing-sm: 1rem;
+    --border-radius-card: 8px;
+    --border-radius-pfp: 50%;
+}
+
+/* ---------------------------------------------------------------------- */
+/* LIGHT MODE VARIABLES                            */
+/* ---------------------------------------------------------------------- */
+
+body.light-theme {
+    --bg-primary: #f8f8f8;       
+    --bg-content: rgba(255, 255, 255, 0.85); /* Reduced opacity for better background visibility */
+    --accent-neon: #1a56ff;      
+    --text-primary: #333333;     
+    --text-secondary: #4d4d4d;   
+    --grid-line: rgba(26, 86, 255, 0.15); 
+    --glow-shadow: 0 0 10px rgba(26, 86, 255, 0.4); 
+    --box-shadow-card: 0 0 10px rgba(0, 0, 0, 0.1);
+    --filter-pfp: invert(0);    
+    --filter-social: invert(0); 
+}
+
+/* ---------------------------------------------------------------------- */
+/* GLOBAL BASE STYLES                              */
+/* ---------------------------------------------------------------------- */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body {
+    font-family: var(--font-secondary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-image: url('img/img3.png');
+    background-color: var(--bg-primary); 
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    background-attachment: fixed; 
+    width: 100%;
+    /* Ensure no accidental horizontal scrollbars appear */
+    overflow-x: hidden; 
+}
+
+.d1 {
+    width: 100%;
+    max-width: 1300px; 
+    /* FIXED: Using a combination of percentage and viewport units for reliable mobile padding */
+    padding: var(--spacing-lg) 2%; 
+    display: grid;
+    gap: var(--spacing-lg);
+    grid-template-columns: 1fr;
+    border-left: 1px solid var(--grid-line);
+    border-right: 1px solid var(--grid-line);
+    background-color: var(--bg-content); 
+    box-shadow: 0 0 50px rgba(0, 255, 200, 0.1);
+    /* Essential for centering when max-width is hit */
+    margin: 0 auto; 
+}
+
+/* --- THEME TOGGLE BUTTON STYLES --- */
+#theme-toggle {
+    position: absolute; 
+    top: var(--spacing-md);
+    right: var(--spacing-md); 
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--accent-neon);
+    color: var(--bg-primary);
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--glow-shadow);
+    z-index: 100;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+#theme-toggle:hover {
+    box-shadow: none;
+    transform: scale(1.05);
+}
+
+@media (max-width: 850px) {
+    #theme-toggle {
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+}
+
+
+/* --- Header & PFP --- */
+
+.header-card {
+    background-color: transparent; 
+    border-bottom: 2px solid var(--accent-neon);
+    padding-bottom: var(--spacing-lg);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    position: relative; 
+    width: 100%; 
+}
+
+.pfp img {
+    width: 250px;
+    height: 250px;
+    border-radius: var(--border-radius-pfp);
+    object-fit: cover;
+    border: 4px solid var(--accent-neon);
+    box-shadow: var(--glow-shadow); 
+    transition: transform 0.3s ease;
+    filter: var(--filter-pfp);
+}
+
+.pfp img:hover {
+    transform: scale(1.05);
+}
+
+h1 {
+    font-family: var(--font-primary);
+    font-size: 4.5rem; 
+    font-weight: 700;
+    color: var(--accent-neon);
+    text-shadow: 0 0 10px rgba(0, 255, 200, 0.4);
+    line-height: 1;
+}
+
+.description.desc {
+    font-family: var(--font-primary);
+    color: var(--text-primary);
+    font-size: 1.3rem;
+    max-width: 900px;
+    margin: 0 auto 1.5rem auto;
+}
+
+/* --- Social Links (Circular) --- */
+.social-buttons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    padding-top: var(--spacing-sm);
+    width: 100%;
+}
+
+.social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 70px; 
+    height: 70px;
+    background-color: var(--bg-content);
+    color: var(--accent-neon);
+    text-decoration: none;
+    border-radius: 50%; 
+    border: 1px solid var(--accent-neon);
+    box-shadow: var(--glow-shadow);
+    transition: all 0.2s ease-in-out;
+    position: relative;
+}
+
+.social-btn:hover {
+    background-color: var(--accent-neon);
+    color: var(--bg-primary);
+    box-shadow: none;
+    transform: scale(1.1);
+}
+
+.social-btn img {
+    width: 32px;
+    height: 32px;
+    filter: var(--filter-social); 
+    position: absolute; 
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: filter 0.3s ease;
+}
+
+.social-btn:hover img {
+    filter: invert(0); 
+}
+
+
+/* --- Project and Directory Cards --- */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--spacing-md);
+    width: 100%;
+    justify-content: center;
+}
+
+.link-card, .dir-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 250px; 
+    text-decoration: none;
+    color: var(--text-primary);
+    border-radius: var(--border-radius-card);
+    background-color: var(--bg-content); 
+    border: 1px solid var(--grid-line);
+    box-shadow: var(--box-shadow-card);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.link-card:hover, .dir-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--glow-shadow);
+    border-color: var(--accent-neon);
+}
+
+.link-card img, .dir-card img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.15; 
+    transition: opacity 0.3s ease;
+}
+
+.overlay {
+    position: relative;
+    z-index: 10;
+    padding: var(--spacing-md);
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8)); 
+    color: var(--accent-neon);
+    font-family: var(--font-primary);
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-shadow: 0 0 5px rgba(0, 255, 200, 0.5);
+}
+
+/* --- Timeline Footer --- */
+
+#timeline-footer {
+    width: 100%;
+    max-width: 1300px;
+    /* FIXED: Using percentage for padding to respect mobile edges */
+    padding: var(--spacing-lg) 2%; 
+    background-color: var(--bg-content); 
+    border-top: 2px solid var(--grid-line);
+    margin-top: var(--spacing-lg);
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-family: var(--font-primary);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.timeline-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem; 
+}
+
+.timeline-event {
+    position: relative;
+    padding: 0 30px 30px 30px;
+    border-left: 2px solid var(--grid-line);
+    text-align: left;
+}
+
+.timeline-event:last-child {
+    border-left: none;
+    padding-bottom: 0;
+}
+
+.timeline-event::before {
+    content: '>>';
+    position: absolute;
+    left: 0; 
+    top: 0;
+    font-size: 1.1rem;
+    color: var(--accent-neon);
+}
+
+.timeline-event strong {
+    color: var(--accent-neon);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.25rem;
+    text-shadow: 0 0 5px rgba(0, 255, 200, 0.2);
+}
+
+.timeline-event p {
+    margin-left: 2rem;
+    color: var(--text-primary);
+}
+
+/* Horizontal Timeline for Desktop */
+@media (min-width: 768px) {
+    /* Reset d1 padding for large screens back to fixed units */
+    .d1, #timeline-footer {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+    
+    .timeline-content {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-top: 2px solid var(--grid-line);
+        padding-top: 1rem;
+    }
+
+    .timeline-event {
+        border-left: none;
+        padding: 0 1.5rem 0 1.5rem;
+        text-align: center;
+        flex: 1;
+        border-right: 2px solid var(--grid-line);
+        font-size: 0.9rem;
+    }
+
+    .timeline-event:last-child {
+        border-right: none;
+    }
+    
+    .timeline-event::before {
+        content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%2300ffc8"><circle cx="50" cy="50" r="40"/><circle cx="50" cy="50" r="10" fill="black"/></svg>');
+        width: 16px;
+        height: 16px;
+        left: 50%;
+        top: -8px; 
+        transform: translateX(-50%);
+        box-shadow: var(--glow-shadow);
+    }
+    
+    body.light-theme .timeline-event::before {
+        content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%231a56ff"><circle cx="50" cy="50" r="40"/><circle cx="50" cy="50" r="10" fill="white"/></svg>');
+    }
+    
+    .timeline-event strong {
+        margin-top: 1rem;
+    }
+    .timeline-event p {
+        margin: 0;
+    }
+}
+
+/* --- Responsiveness (Mobile) --- */
+
+@media (max-width: 850px) {
+    /* FIXED: Override d1 padding one last time for very small screens, using viewport width */
+    .d1, #timeline-footer {
+        padding-left: 3vw; 
+        padding-right: 3vw;
+    }
+
+    .pfp img {
+        width: 180px;
+        height: 180px;
+    }
+    h1 {
+        font-size: 3rem;
+    }
+    .description.desc {
+        font-size: 1.1rem;
+    }
+    .social-btn {
+        width: 50px;
+        height: 50px;
+    }
+    .social-btn img {
+        width: 24px;
+        height: 24px;
+    }
+}
