@@ -1,0 +1,246 @@
+/* style.css - Enhanced with Mobile Responsiveness */
+
+:root {
+    /* Light Theme Colors */
+    --background-color: #f5f5f5;
+    --text-color: #1c1c1c;
+    --card-background: #ffffff;
+    --card-border: #e0e0e0;
+    --primary-color: #007bff; /* Bright Blue */
+    --accent-glow: 0 0 5px rgba(0, 123, 255, 0.5);
+    --secondary-text: #6a6a6a;
+    --toggle-icon-color: #333; /* For light theme toggle icon */
+}
+
+.dark-theme {
+    /* Dark/Futuristic Neon Theme Colors */
+    --background-color: #0e0e1a; /* Very dark space blue */
+    --text-color: #e6f7ff; /* Light, bright text */
+    --card-background: rgba(30, 30, 45, 0.6); /* Slightly transparent dark background (Glass effect) */
+    --card-border: #1f3045; /* Subtle dark border */
+    --primary-color: #00ffff; /* Neon Cyan */
+    --accent-glow: 
+        0 0 8px #00ffff, /* Inner glow */
+        0 0 15px rgba(0, 255, 255, 0.4); /* Outer halo */
+    --secondary-text: #a0ffff; /* Light cyan metadata */
+    --toggle-icon-color: #00ffff; /* For dark theme toggle icon */
+}
+
+/* Global Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: background-color 0.8s ease, color 0.8s ease;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px; /* Default desktop padding */
+}
+
+/* Header & Toggle Positioning */
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 2px solid var(--card-border);
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.logo {
+    font-size: 2.2em;
+    color: var(--primary-color);
+    text-shadow: var(--accent-glow);
+    transition: text-shadow 0.5s;
+}
+
+/* Theme Toggle Button - Icon Button */
+.theme-toggle-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    z-index: 10; /* Ensure it is clickable over the logo */
+}
+
+.theme-toggle-button:hover {
+    background: rgba(0, 255, 255, 0.1);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.theme-toggle-button svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--toggle-icon-color);
+    transition: fill 0.3s ease, transform 0.3s ease;
+}
+
+.theme-toggle-button:hover svg {
+    transform: scale(1.1);
+    fill: var(--primary-color);
+}
+
+/* Post Feed Layout */
+.feed {
+    display: grid;
+    /* This grid rule makes it mobile-friendly by ensuring only 1 column when the screen is < 320px */
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+    gap: 40px;
+}
+
+/* === POST CARD STYLING === */
+.post-card {
+    background: var(--card-background);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    padding: 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.dark-theme .post-card {
+    box-shadow: 
+        0 0 5px rgba(0, 255, 255, 0.2),
+        0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.post-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--primary-color);
+    box-shadow: 
+        0 0 15px var(--primary-color), 
+        0 0 30px rgba(0, 255, 255, 0.6),
+        0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* Thumbnail Styling */
+.post-thumbnail {
+    width: 100%;
+    height: 200px; 
+    object-fit: contain; /* Ensures the whole image is visible without cropping */
+    background-color: #000; 
+    margin-bottom: 20px; 
+    border-bottom: 1px solid var(--card-border);
+    opacity: 0.9;
+    transition: opacity 0.3s, background-color 0.3s;
+}
+
+.dark-theme .post-thumbnail {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Card Content Wrapper */
+.card-content-wrapper {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.post-title {
+    font-size: 1.6em;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+}
+
+.post-meta {
+    font-size: 0.85em;
+    color: var(--secondary-text);
+    margin-bottom: 20px;
+    display: block;
+    font-style: italic;
+    letter-spacing: 0.5px;
+    word-break: break-word; /* Allows long strings (like location/meta) to wrap */
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+    border-top: 1px solid var(--card-border);
+    font-size: 0.9em;
+    color: var(--secondary-text);
+}
+
+/* --- MOBILE RESPONSIVENESS ADJUSTMENTS --- */
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px; /* Slightly tighter padding for tablets/large phones */
+    }
+    .feed {
+        gap: 25px;
+    }
+    .card-content-wrapper {
+        padding: 20px; /* Reduce card content padding */
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px; /* Tighter padding for small phones */
+    }
+    
+    /* Header layout for small phones */
+    .main-header {
+        flex-direction: column;
+        align-items: center;
+        padding-top: 50px; 
+        margin-bottom: 20px;
+    }
+    .main-header .theme-toggle-button {
+        top: 10px;
+        right: 10px;
+    }
+    .logo {
+        font-size: 1.8em; /* Smaller logo */
+        margin-bottom: 10px;
+        text-align: center;
+        width: 100%;
+    }
+    
+    /* Card element scaling */
+    .post-thumbnail {
+        height: 150px; /* Smaller thumbnail */
+        margin-bottom: 15px;
+    }
+    .post-title {
+        font-size: 1.4em;
+    }
+    .post-meta {
+        font-size: 0.75em; /* Smallest text size for the long metadata line */
+        margin-bottom: 15px;
+    }
+    .card-content-wrapper {
+        padding: 15px; /* Tightest padding */
+    }
+}

@@ -1,1 +1,8 @@
-[]
+[
+    {
+        "name": "1st-project",
+        "bio": "this is just a test",
+        "thumbnail": "\/projects\/assets\/1st-project\/images\/1st-project-thumbnail.jpg",
+        "slug": "1st-project"
+    }
+]

@@ -7,177 +7,250 @@
     <style>
         /* CSS for the page */
 
-        /* Color Variables based on your request:
-           - 70% WHITE (or very light gray for contrast)
-           - 15% BABY BLUE
-           - 5% PURPLE
-           - 5% BLACK
-        */
+        /* --- Color Variables (Default: Light Theme) --- */
         :root {
-            --color-white: #f7f7ff;    /* Near-white for background/cards (70%) */
-            --color-baby-blue: #a3c9ff; /* Primary accent color (15%) */
-            --color-purple: #8e44ad;    /* Secondary accent color (5%) */
-            --color-black: #1a1a1a;     /* Text/Shadow color (5%) */
-            --color-text-light: #555555;
-            --color-text-dark: #1a1a1a;
+            /* Color Palette Ratios: 70% Base, 15% Baby Blue, 5% Purple, 5% Black/Dark Text */
+            --color-base: #f7f7ff;         /* 70%: Near-white/Light background */
+            --color-surface: #ffffff;      /* Card background */
+            --color-accent-primary: #a3c9ff; /* 15%: Baby Blue */
+            --color-accent-secondary: #8e44ad; /* 5%: Purple */
+            --color-text-dark: #1a1a1a;    /* 5%: Dark text/headings */
+            --color-text-light: #555555;   /* Light gray text */
+            --color-shadow: rgba(0, 0, 0, 0.15); /* Shadow for cards */
         }
 
+        /* --- Dark Theme Overrides --- */
+        body.dark-theme {
+            --color-base: #1a1a1a;          /* Main background: Black (5%) */
+            --color-surface: #2b2b2b;       /* Card background: Darker gray */
+            --color-accent-primary: #a3c9ff; /* Baby Blue (stays the same) */
+            --color-accent-secondary: #c077ff; /* Lighter Purple for contrast */
+            --color-text-dark: #f0f0f0;     /* Text: Light/Near-white (70%) */
+            --color-text-light: #b0b0b0;    /* Lighter gray text */
+            --color-shadow: rgba(255, 255, 255, 0.15); /* Light shadow for contrast */
+        }
+
+        /* --- Global Styles --- */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 30px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: var(--color-white); /* Main background: White */
-            color: var(--color-text-dark);
+            background-color: var(--color-base);
+            color: var(--color-text-light);
             flex-direction: column;
-            gap: 20px;
+            gap: 40px;
+            transition: background-color 0.4s ease, color 0.4s ease; /* Smooth theme transition */
+        }
+
+        .dashboard-header {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--color-text-dark);
+            font-size: 2.5rem;
+            margin: 0;
+        }
+
+        /* --- Theme Toggle Button --- */
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--color-text-dark);
+            padding: 10px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--color-accent-primary);
         }
 
         .container {
             display: flex;
             gap: 40px;
-            padding: 20px;
+            padding: 20px 0;
             max-width: 1000px;
             width: 90%;
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            flex-wrap: wrap;
             justify-content: center;
         }
 
+        /* --- Card Styles --- */
         .card {
-            background-color: #ffffff; /* Card background is pure white */
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05); /* Soft shadow with a slight black line */
-            width: 100%; /* Default to full width for mobile */
-            max-width: 400px; /* Max width for desktop */
-            min-height: 250px;
+            background-color: var(--color-surface);
+            border-radius: 20px; /* Increased border radius for a softer look */
+            box-shadow: 0 15px 40px -10px var(--color-shadow); /* More prominent shadow */
+            width: 100%;
+            max-width: 450px;
+            min-height: 280px; /* Slightly taller */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 30px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            text-decoration: none; /* Remove underline from the anchor tag */
+            padding: 40px;
+            transition: transform 0.4s ease, box-shadow 0.4s ease, background-color 0.4s ease;
+            text-decoration: none;
             color: inherit;
-            position: relative; /* For the accent ribbon */
+            position: relative;
             overflow: hidden;
+            border: 1px solid transparent; /* Prepare for border hover */
         }
 
         .card:hover {
-            transform: translateY(-8px); /* Lift effect on hover */
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px -15px var(--color-shadow);
         }
 
         .card-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
+            font-size: 4rem; /* Larger icon */
+            margin-bottom: 20px;
         }
 
         .card h2 {
             margin-top: 0;
-            font-size: 1.8rem;
-            color: var(--color-black);
+            font-size: 2rem; /* Larger heading */
+            color: var(--color-text-dark);
             margin-bottom: 10px;
+            font-weight: 600; /* Semi-bold */
         }
 
         .card p {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             color: var(--color-text-light);
+            line-height: 1.4;
         }
 
-        /* Ribbon accent for Card 1 (Baby Blue) */
-        #card-projects::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 8px;
-            background-color: var(--color-baby-blue);
-            border-radius: 15px 15px 0 0;
+        /* --- Accent Border Hover Effect --- */
+        .card:hover {
+            /* The ribbon will be the hover border now for a cleaner look */
+            border: 1px solid;
         }
 
-        /* Ribbon accent for Card 2 (Purple) */
-        #card-blog::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 8px;
-            background-color: var(--color-purple);
-            border-radius: 15px 15px 0 0;
+        #card-projects:hover {
+            border-color: var(--color-accent-primary); /* Baby Blue border on hover */
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 850px) {
+        #card-blog:hover {
+            border-color: var(--color-accent-secondary); /* Purple border on hover */
+        }
+
+        /* Remove old ribbon styles */
+        #card-projects::before, #card-blog::before {
+            display: none;
+        }
+
+        /* --- Responsive adjustments --- */
+        @media (max-width: 950px) {
             .container {
                 flex-direction: column;
-                gap: 20px;
+                gap: 30px;
+                align-items: center;
+                width: 100%;
             }
             .card {
-                max-width: 100%;
+                max-width: 90%;
+                min-height: 200px;
+                padding: 30px;
+            }
+            .dashboard-header {
+                padding: 0 20px;
             }
         }
     </style>
 </head>
-<body>
-    <div class="container">
+<body class="light-theme">
+    <div class="dashboard-header">
+        <h1>CMS Dashboard</h1>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark/light theme">
+            <span id="theme-icon">☀️</span>
+        </button>
+    </div>
 
+    <div class="container">
         <a id="card-projects" class="card" href="/projects/cms">
-            <div class="card-icon" style="color: var(--color-baby-blue);">
+            <div class="card-icon" style="color: var(--color-accent-primary);">
                 🛠️
             </div>
             <h2>Manage Projects</h2>
-            <p>Go to the Content Management System for all your project.</p>
+            <p>Create,Publish,Edit and Delete all your projects and their posts from one dashnoard</p>
         </a>
 
         <a id="card-blog" class="card" href="/blog/cms">
-            <div class="card-icon" style="color: var(--color-purple);">
+            <div class="card-icon" style="color: var(--color-accent-secondary);">
                 ✍️
             </div>
             <h2>Manage Blog Posts</h2>
-            <p>Access the CMS to create, edit, or publish new articles and update existing blog content.</p>
+            <p>Access the CMS to create, edit, or publish new articles and update existing blog content with ease.</p>
         </a>
     </div>
 
     <script>
-        // JavaScript for simple interaction (optional but included as requested)
-
-        // This function will add a subtle class to the card when clicked,
-        // which could be used to show a ripple effect or quick flash.
-        // In this case, we'll just log the navigation for demonstration.
         document.addEventListener('DOMContentLoaded', () => {
+            const body = document.body;
+            const toggleButton = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+
+            // 1. Check for stored theme preference or default to light
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            
+            // Set initial theme
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-theme');
+                themeIcon.textContent = '🌙'; // Moon icon for dark theme
+            } else {
+                body.classList.remove('dark-theme');
+                themeIcon.textContent = '☀️'; // Sun icon for light theme
+            }
+
+
+            // 2. Theme Toggle Functionality
+            toggleButton.addEventListener('click', () => {
+                const isDark = body.classList.toggle('dark-theme');
+
+                if (isDark) {
+                    localStorage.setItem('theme', 'dark');
+                    themeIcon.textContent = '🌙';
+                } else {
+                    localStorage.setItem('theme', 'light');
+                    themeIcon.textContent = '☀️';
+                }
+            });
+
+            // 3. Simple Card Click Effect (Optional but good for UX)
             const cards = document.querySelectorAll('.card');
 
             cards.forEach(card => {
                 card.addEventListener('click', (e) => {
-                    // Prevent default navigation for a moment to show the effect
-                    // In a real scenario, you might want to remove this line:
-                    // e.preventDefault();
-
                     // Log the action (demonstration)
                     console.log(`Navigating to: ${card.getAttribute('href')}`);
 
-                    // A simple animation class that is removed after a short delay
+                    // A subtle visual feedback on click
                     card.classList.add('clicked');
                     setTimeout(() => {
                         card.classList.remove('clicked');
-                        // In a real scenario, you'd navigate here if you stopped it above
-                        // window.location.href = card.getAttribute('href');
                     }, 200);
                 });
             });
+            /*
+              Add this simple class to your CSS for the click effect:
+              .card.clicked {
+                 transform: scale(0.98);
+                 opacity: 0.85;
+              }
+            */
         });
-        /*
-          NOTE: To see the 'clicked' class effect, you would need to add CSS like:
-          .card.clicked {
-             box-shadow: 0 0 0 5px rgba(163, 201, 255, 0.5); // Baby blue glow
-          }
-        */
     </script>
 </body>
 </html>

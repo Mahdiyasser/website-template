@@ -1,176 +1,182 @@
-/* Minimal, dependency-free frontend logic.
-   Expects projects.json and posts.json in same folder.
-   If fetch fails (file://), it uses the fallback JSON blocks embedded in index.html.
-*/
+document.addEventListener('DOMContentLoaded', () => {
+    const projectsFeed = document.getElementById('projects-feed');
+    const postsList = document.getElementById('project-posts-list');
+    const postsTitle = document.getElementById('posts-title');
+    const projectsView = document.getElementById('projects-view');
+    const postsView = document.getElementById('posts-view');
+    const backButton = document.getElementById('back-to-projects');
+    const loadingMessage = document.getElementById('loading-projects');
+    const themeToggle = document.getElementById('theme-toggle');
 
-const $ = (s, c = document) => c.querySelector(s);
-const $$ = (s, c = document) => Array.from(c.querySelectorAll(s));
+    let allPostsData = [];
+    let allProjectsData = [];
 
-const projectsGrid = $('#projectsGrid');
-const projectsEmpty = $('#projectsEmpty');
-const postsArea = $('#postsArea');
-const projectsArea = $('#projectsArea');
-const postsGrid = $('#postsGrid');
-const postsEmpty = $('#postsEmpty');
-const postsTitle = $('#postsTitle');
-const backBtn = $('#backBtn');
-const searchInput = $('#search');
-const openCms = $('#openCms');
-const showAllBtn = $('#showAll');
-const sortSelect = $('#sort');
-const backToTop = $('#backToTop');
+    // --- Utility Functions ---
 
-let projects = [];
-let posts = [];
-let activeProject = null;
+    // Sorts posts by date (latest to oldest)
+    function sortPosts(posts) {
+        return posts.sort((a, b) => {
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
+            return dateB - dateA; // Latest date first
+        });
+    }
 
-async function loadJSON(path, fallbackId) {
-    try {
-        const r = await fetch(path, { cache: 'no-cache' });
-        if (!r.ok) throw new Error('network');
-        return await r.json();
-    } catch (e) {
-        // fallback to embedded
+    // --- View Switching Functions ---
+
+    function showPostsView() {
+        projectsView.classList.add('hidden');
+        postsView.classList.remove('hidden');
+        window.scrollTo(0, 0); // Scroll to top when switching view
+    }
+
+    function showProjectsView() {
+        postsView.classList.add('hidden');
+        projectsView.classList.remove('hidden');
+        window.scrollTo(0, 0); // Scroll to top when switching view
+    }
+
+    // --- Rendering Functions ---
+
+    function renderProjectCards(projects) {
+        if (!projects || projects.length === 0) {
+            loadingMessage.textContent = "No projects found in projects.json.";
+            return;
+        }
+
+        loadingMessage.style.display = 'none';
+        projectsFeed.innerHTML = '';
+
+        projects.forEach(project => {
+            const projectSlug = project.slug; 
+            const fallbackThumbnail = 'https://via.placeholder.com/600x400?text=Project+Thumbnail';
+            const thumbnailPath = project.thumbnail || fallbackThumbnail;
+
+            const card = document.createElement('div');
+            card.classList.add('project-card');
+            card.dataset.slug = projectSlug;
+            
+            // Add click listener for filtering
+            card.addEventListener('click', () => filterAndShowPosts(projectSlug, project.name));
+
+            card.innerHTML = `
+                <div class="project-card-image">
+                    <img src="${thumbnailPath}" alt="${project.name} Thumbnail" onerror="this.onerror=null;this.src='${fallbackThumbnail}';">
+                </div>
+                <div class="project-card-content">
+                    <h3>${project.name}</h3>
+                    <p>${project.bio}</p>
+                </div>
+            `;
+            projectsFeed.appendChild(card);
+        });
+    }
+
+    function renderFilteredPosts(posts) {
+        postsList.innerHTML = ''; 
+
+        if (!posts || posts.length === 0) {
+            postsList.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">No posts found for this project.</p>';
+            return;
+        }
+
+        const sortedPosts = sortPosts(posts);
+
+        sortedPosts.forEach(post => {
+            const postDate = new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            const postUrl = post.file; 
+            const fallbackThumbnail = 'https://via.placeholder.com/600x200?text=Post+Image';
+            const thumbnailPath = post.thumbnail || fallbackThumbnail;
+
+            const cardLink = document.createElement('a');
+            cardLink.href = postUrl;
+            // Removed: cardLink.target = "_blank"; 
+            cardLink.classList.add('post-card');
+
+            cardLink.innerHTML = `
+                <div class="project-card-image">
+                    <img src="${thumbnailPath}" alt="${post.title} Thumbnail" onerror="this.onerror=null;this.src='${fallbackThumbnail}';">
+                </div>
+                <div class="post-card-content">
+                    <h3>${post.title}</h3>
+                    <div class="post-meta">
+                        📅 ${postDate}
+                    </div>
+                    <p>${post.desc}</p>
+                    <span class="post-read-link">Read Post →</span>
+                </div>
+            `;
+            postsList.appendChild(cardLink);
+        });
+    }
+
+    // The core filtering function
+    function filterAndShowPosts(slug, name) {
+        // Filter posts where the post's 'file' path contains the project's 'slug'
+        const filteredPosts = allPostsData.filter(post => {
+            return post.file && post.file.includes(`/${slug}/`); 
+        });
+
+        // MODIFIED LINE: Title is stacked and clean
+        postsTitle.innerHTML = `Posts for<br>${name}`;
+        
+        renderFilteredPosts(filteredPosts);
+        showPostsView();
+    }
+
+
+    // --- Data Fetching ---
+
+    async function fetchAllData() {
         try {
-            const el = document.getElementById(fallbackId);
-            return JSON.parse(el.textContent);
-        } catch (err) {
-            console.error('Failed to load', path, err);
-            return [];
+            // Fetch projects.json
+            const projectsResponse = await fetch('projects.json');
+            if (!projectsResponse.ok) throw new Error(`HTTP error fetching projects!`);
+            allProjectsData = await projectsResponse.json();
+
+            // Fetch posts.json
+            const postsResponse = await fetch('posts.json');
+            if (!postsResponse.ok) {
+                 console.warn("posts.json not found or inaccessible. Proceeding with project data only.");
+                 allPostsData = [];
+            } else {
+                 allPostsData = await postsResponse.json();
+            }
+            
+            // Initial render: show all project cards
+            renderProjectCards(allProjectsData);
+
+        } catch (e) {
+            console.error("Failed to load data:", e);
+            loadingMessage.textContent = "Error loading data. Ensure projects.json and posts.json are accessible.";
         }
     }
-}
 
-function sanitizeFilename(name) {
-    return name.replace(/[\\\/:#?<>|"]/g, '').replace(/\s+/g, '-');
-}
+    // --- Event Listeners & Theme ---
 
-function createProjectCard(proj) {
-    const card = document.createElement('article');
-    card.className = 'card';
-    card.dataset.project = proj.title;
+    // This makes the "Back to Projects" button work seamlessly
+    backButton.addEventListener('click', showProjectsView);
 
-    const thumb = document.createElement('div'); thumb.className = 'thumb';
-    const img = document.createElement('img');
-    img.alt = proj.title + ' thumbnail';
-    img.src = proj.thumbnail || `assets/${encodeURIComponent(proj.title)}/images/${encodeURIComponent(proj.title)}.jpg`;
-    thumb.appendChild(img);
+    // Initial theme setup
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    if (currentTheme === 'light') {
+        document.body.classList.add('light-theme');
+        themeToggle.textContent = '🌙 Switch to Dark';
+    } else {
+        themeToggle.textContent = '☀️ Switch to Light';
+    }
 
-    const title = document.createElement('h3'); title.textContent = proj.title;
-    const bio = document.createElement('p'); bio.textContent = proj.bio || '';
-
-    const meta = document.createElement('div'); meta.className = 'meta-row';
-    const date = document.createElement('small'); date.textContent = proj.date || '';
-    const open = document.createElement('button'); open.className = 'btn'; open.textContent = 'Open';
-    open.onclick = () => openProject(proj.title);
-
-    meta.appendChild(date); meta.appendChild(open);
-    card.appendChild(thumb); card.appendChild(title); card.appendChild(bio); card.appendChild(meta);
-
-    // clicking card (not button) also opens
-    card.addEventListener('click', (e) => {
-        if (e.target.tagName.toLowerCase() !== 'button') openProject(proj.title);
+    themeToggle.addEventListener('click', () => {
+        const isLight = document.body.classList.toggle('light-theme');
+        if (isLight) {
+            localStorage.setItem('theme', 'light');
+            themeToggle.textContent = '🌙 Switch to Dark';
+        } else {
+            localStorage.setItem('theme', 'dark');
+            themeToggle.textContent = '☀️ Switch to Light';
+        }
     });
 
-    return card;
-}
-
-function renderProjects(list) {
-    projectsGrid.innerHTML = '';
-    if (!list || list.length === 0) { projectsEmpty.style.display = 'block'; return; } else projectsEmpty.style.display = 'none';
-    list.forEach(p => projectsGrid.appendChild(createProjectCard(p)));
-}
-
-function buildPostCard(p) {
-    const c = document.createElement('article'); c.className = 'card post-card';
-    const thumb = document.createElement('div'); thumb.className = 'post-thumb';
-    const img = document.createElement('img');
-    img.alt = p.title + ' thumbnail';
-    img.src = p.thumbnail || `assets/${encodeURIComponent(p.project)}/images/${encodeURIComponent(p.title)}-thumbnail.jpg`;
-    thumb.appendChild(img);
-
-    const info = document.createElement('div'); info.className = 'post-info';
-    const h = document.createElement('h4'); h.textContent = p.title;
-    const bio = document.createElement('p'); bio.textContent = p.bio || '';
-    const meta = document.createElement('small'); meta.style.color = 'var(--muted)'; meta.textContent = p.date || '';
-
-    info.appendChild(h); info.appendChild(bio); info.appendChild(meta);
-    c.appendChild(thumb); c.appendChild(info);
-
-    // open actual post file in new tab
-    c.addEventListener('click', () => {
-        const filename = sanitizeFilename(p.title) + '.html';
-        const path = `assets/${encodeURIComponent(p.project)}/posts/${encodeURIComponent(p.title)}.html`;
-        // try the nice path (keeps case) but fallback to sanitized filename
-        window.open(path, '_blank') || window.open(`assets/${encodeURIComponent(p.project)}/posts/${encodeURIComponent(filename)}`, '_blank');
-    });
-
-    return c;
-}
-
-function renderPostsForProject(title) {
-    postsGrid.innerHTML = '';
-    const filtered = posts.filter(p => p.project === title);
-    if (filtered.length === 0) { postsEmpty.style.display = 'block'; return; } else postsEmpty.style.display = 'none';
-
-    const sortMode = sortSelect.value;
-    const sorted = filtered.slice().sort((a, b) => {
-        if (sortMode === 'new') return new Date(b.date) - new Date(a.date);
-        if (sortMode === 'old') return new Date(a.date) - new Date(b.date);
-        return a.title.localeCompare(b.title);
-    });
-
-    sorted.forEach(p => postsGrid.appendChild(buildPostCard(p)));
-}
-
-function openProject(title) {
-    activeProject = title;
-    document.title = title + ' — Projects';
-    postsTitle.textContent = title;
-    projectsArea.style.display = 'none';
-    postsArea.style.display = 'block';
-    renderPostsForProject(title);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function closePostsView() {
-    activeProject = null;
-    document.title = 'Projects — Mini CMS';
-    postsArea.style.display = 'none';
-    projectsArea.style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function attachEvents() {
-    backBtn.addEventListener('click', closePostsView);
-    $('#sort').addEventListener('change', () => { if (activeProject) renderPostsForProject(activeProject); });
-
-    searchInput.addEventListener('input', (e) => {
-        const q = e.target.value.trim().toLowerCase();
-        if (!q) { renderProjects(projects); return; }
-        // search projects and posts
-        const projMatches = projects.filter(p => (p.title + ' ' + (p.bio || '')).toLowerCase().includes(q));
-        const postMatches = posts.filter(p => (p.title + ' ' + (p.bio || '')).toLowerCase().includes(q));
-        // show matching projects first (unique), then any projects that have matching posts
-        const projectsFromPosts = Array.from(new Set(postMatches.map(p => p.project))).map(name => projects.find(x => x.title === name)).filter(Boolean);
-        const final = Array.from(new Set([...projMatches, ...projectsFromPosts]));
-        renderProjects(final);
-    });
-
-    showAllBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        renderProjects(projects);
-        closePostsView();
-    });
-
-    backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-}
-
-async function init() {
-    projects = await loadJSON('projects.json', 'projects-fallback');
-    posts = await loadJSON('posts.json', 'posts-fallback');
-    renderProjects(projects);
-    attachEvents();
-}
-
-init();
+    // Start data load
+    fetchAllData();
+});

@@ -1,75 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Projects</title>
-    <meta name="description" content="This is my projects" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahdi’s Projects</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div class="wrap">
-        <header>
-            <div class="brand">
-                <div class="logo"><img src="../img/prjcts.png" alt="projects.png" width="50" height="50"></div>
-                <div>
-                    <h1>Projects</h1>
-                    <p class="lead">This is my projects</p>
-                </div>
-            </div>
-
-            <div class="controls">
-                <input id="search" class="search" placeholder="Search projects or posts..." />
-                <button id="showAll" class="btn ghost">Show All</button>
-            </div>
+    <div class="container">
+        <header class="main-header">
+            <div class="header-left"></div> 
+            <h1 class="logo">Mahdi's Projects</h1>
+            <button id="theme-toggle" class="smallbtn">☀️ Switch to Light</button>
         </header>
 
-        <!-- Projects list -->
-        <section id="projectsArea" aria-label="projects list">
-            <div id="projectsGrid" class="grid"></div>
-            <div id="projectsEmpty" class="empty" style="display:none">No projects found.</div>
-        </section>
-
-        <!-- Posts area (hidden until a project opened) -->
-        <section id="postsArea" class="posts-area" aria-label="posts list">
-            <div class="posts-header">
-                <div>
-                    <button id="backBtn" class="back">← Back</button>
-                    <h2 id="postsTitle" style="display:inline;margin-left:12px">Project</h2>
+        <main id="main-content">
+            <section id="projects-view">
+                <h2 class="section-title">— Featured Projects —</h2>
+                <div class="feed projects-grid" id="projects-feed">
+                    <p id="loading-projects">Loading projects...</p>
                 </div>
-                <div class="posts-controls">
-                    <select id="sort" class="search">
-                        <option value="new">Newest</option>
-                        <option value="old">Oldest</option>
-                        <option value="alpha">A → Z</option>
-                    </select>
-                    <button id="backToTop" class="btn ghost">Top</button>
-                </div>
-            </div>
+            </section>
 
-            <div id="postsGrid" class="grid"></div>
-            <div id="postsEmpty" class="empty" style="display:none">No posts for this project yet.</div>
-        </section>
+            <section id="posts-view" class="hidden">
+                <button id="back-to-projects" class="back-button">← Back to Projects</button>
+                <h2 class="section-title" id="posts-title">Posts for [Project Name]</h2>
+                <div class="posts-list" id="project-posts-list">
+                    </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 Mahdi. Powered by Hope and Ambition.</p>
+        </footer>
     </div>
-
-    <!-- Fallback JSON blocks (used only if direct fetch fails, e.g., file://) -->
-    <script id="projects-fallback" type="application/json">
-  [
-    {"title":"Space","bio":"Exploring the universe.","thumbnail":"assets/Space/images/Space.jpg","date":"2025-10-10"},
-    {"title":"Tech","bio":"Innovations and machines.","thumbnail":"assets/Tech/images/Tech.jpg","date":"2025-10-09"}
-  ]
-  </script>
-
-    <script id="posts-fallback" type="application/json">
-  [
-    {"title":"Launch Day","bio":"Our first rocket launch.","thumbnail":"assets/Space/images/Launch-Day-thumbnail.jpg","project":"Space","date":"2025-10-11"},
-    {"title":"AI Takeover","bio":"The rise of intelligent machines.","thumbnail":"assets/Tech/images/AI-Takeover-thumbnail.jpg","project":"Tech","date":"2025-10-10"}
-  ]
-  </script>
-
+    
     <script src="script.js"></script>
 </body>
-
 </html>

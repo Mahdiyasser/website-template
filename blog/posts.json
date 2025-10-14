@@ -2,8 +2,16 @@
     {
         "title": "1st Post",
         "date": "2025-10-08",
-        "thumbnail": "assets/images/1st-post/1st-post1.jpg",
-        "file": "assets/posts/post1.html",
+        "thumbnail": "assets\/images\/1st-post\/1st-post1.jpg",
+        "file": "assets\/posts\/post1.html",
         "desc": "1st Post in the blog"
+    },
+    {
+        "title": "CMS",
+        "date": "2025-10-10 00:22",
+        "thumbnail": "\/blog\/assets\/images\/cms\/thumbnail.jpg",
+        "file": "\/blog\/assets\/posts\/cms.html",
+        "desc": "what is a CMS",
+        "location": "Hosh issa,Behira,Egypt"
     }
 ]

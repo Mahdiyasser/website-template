@@ -1,21 +1,20 @@
 <?php
 // Post Maker - Absolute
 // by Mahdi & ChatGPT
-// Upgraded: Edit (full), Cancel Edit, Update Post, PRG, Clear Form, preserve uploads
-// Additional: rename slug + html + images folder when title changed,
-// image delete (per-image), thumbnail separate and replace, sync posts.json & HTML paths.
+// Upgraded: Project/Tag Management, Project-based folder structure, Project CRUD.
+// LATEST CHANGE: Dynamic "Back to Project" link using history.back()
 
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 session_start();
 
 $baseDir = realpath(__DIR__ . '/../');
-$postsDir = $baseDir . '/assets/posts';
-$imagesBase = $baseDir . '/assets/images';
+$projectBaseDir = $baseDir . '/assets'; // NEW base for all projects
 $jsonFile = $baseDir . '/posts.json';
+$projectsJsonFile = $baseDir . '/projects.json'; // NEW
 $locationDefault = 'Hosh Issa, Beheira, Egypt';
 
-$baseUrl = '/blog'; // 🔥 Main prefix for all absolute URLs
+$baseUrl = '/projects'; // 🔥 Main prefix for all absolute URLs
 
 $message = '';
 $errors = [];
@@ -29,15 +28,20 @@ function slugify($text){
     return trim($text, '-');
 }
 
-// Ensure posts.json exists
+// Ensure posts.json and projects.json exist
 if(!file_exists($jsonFile)) file_put_contents($jsonFile, json_encode([], JSON_PRETTY_PRINT));
+if(!file_exists($projectsJsonFile)) file_put_contents($projectsJsonFile, json_encode([], JSON_PRETTY_PRINT));
 
 // Load posts array early
 $postsArr = json_decode(file_get_contents($jsonFile), true);
 if(!is_array($postsArr)) $postsArr = [];
 
+// Load projects array early
+$projectsArr = json_decode(file_get_contents($projectsJsonFile), true);
+if(!is_array($projectsArr)) $projectsArr = [];
+
 /**
- * Helper: find post index by slug
+ * Helper: find post index by slug (filename)
  */
 function findPostIndexBySlug($arr, $slug){
     foreach($arr as $i => $p){
@@ -48,23 +52,51 @@ function findPostIndexBySlug($arr, $slug){
 }
 
 /**
- * Helper: read images list from images folder for a slug
- * returns web paths prefixed with $baseUrl (e.g. /blog/assets/images/slug/filename)
+ * Helper: find project index by tag slug
  */
-function getImagesForSlug($imagesBase, $slug, $baseUrl){
-    $dir = rtrim($imagesBase, '/\\') . '/' . $slug;
+function findProjectIndexBySlug($arr, $slug){
+    foreach($arr as $i => $p){
+        if(slugify($p['name'] ?? '') === $slug) return $i;
+    }
+    return false;
+}
+
+/**
+ * Helper: Safely get project thumbnail path (web path) based on naming convention
+ */
+function getProjectThumbnailPath($projectBaseDir, $tagSlug, $baseUrl){
+    $dir = rtrim($projectBaseDir, '/\\') . '/' . $tagSlug . '/images/';
+    // Search for <tagSlug>-thumbnail.*
+    $files = glob($dir . $tagSlug . '-thumbnail.*');
+    if(!empty($files)){
+        $web = str_replace('\\','/', $files[0]);
+        $pos = strpos($web, '/assets/' . $tagSlug . '/images/');
+        if($pos !== false){
+            return rtrim($baseUrl, '/') . substr($web, $pos);
+        }
+    }
+    return ''; // No thumbnail found
+}
+
+/**
+ * Helper: read images list from images folder for a slug within a project
+ * returns web paths prefixed with $baseUrl (e.g. /projects/assets/tag-slug/images/post-slug/filename)
+ */
+function getImagesForSlug($projectBaseDir, $tagSlug, $postSlug, $baseUrl){
+    $dir = rtrim($projectBaseDir, '/\\') . '/' . $tagSlug . '/images/' . $postSlug; // NEW PATH
     $list = [];
     if(is_dir($dir)){
         $files = array_values(array_filter(glob($dir . '/*'), 'is_file'));
         sort($files);
         foreach($files as $f){
             $web = str_replace('\\','/', $f);
-            $pos = strpos($web, '/assets/images');
+            $pos = strpos($web, '/assets/' . $tagSlug . '/images/' . $postSlug);
             if($pos !== false){
-                $rel = substr($web, $pos); // starts with /assets/images/...
+                $rel = substr($web, $pos); // starts with /assets/tag-slug/images/post-slug/...
                 $list[] = rtrim($baseUrl, '/') . $rel;
             } else {
-                $list[] = rtrim($baseUrl, '/') . '/assets/images/' . $slug . '/' . basename($f);
+                // Fallback
+                $list[] = rtrim($baseUrl, '/') . '/assets/' . $tagSlug . '/images/' . $postSlug . '/' . basename($f);
             }
         }
     }
@@ -123,18 +155,22 @@ function safeRenameDir($old, $new){
 }
 
 /**
- * Helper: update image paths inside HTML content when slug changes
+ * Helper: update image paths inside HTML content when slug changes or tag changes
  */
-function replaceSlugInHtml($htmlPath, $oldSlug, $newSlug, $baseUrl){
+function replaceSlugInHtml($htmlPath, $oldTagSlug, $newTagSlug, $oldPostSlug, $newPostSlug, $baseUrl){
     if(!file_exists($htmlPath)) return;
     $html = file_get_contents($htmlPath);
-    $oldPrefix = rtrim($baseUrl, '/') . '/assets/images/' . $oldSlug . '/';
-    $newPrefix = rtrim($baseUrl, '/') . '/assets/images/' . $newSlug . '/';
+
+    // 1. Update image paths
+    $oldPrefix = rtrim($baseUrl, '/') . '/assets/' . $oldTagSlug . '/images/' . $oldPostSlug . '/';
+    $newPrefix = rtrim($baseUrl, '/') . '/assets/' . $newTagSlug . '/images/' . $newPostSlug . '/';
     $html = str_replace($oldPrefix, $newPrefix, $html);
-    // Also update posts link if present (file path)
-    $oldPostPath = rtrim($baseUrl, '/') . '/assets/posts/' . $oldSlug . '.html';
-    $newPostPath = rtrim($baseUrl, '/') . '/assets/posts/' . $newSlug . '.html';
+
+    // 2. Update posts link (file path)
+    $oldPostPath = rtrim($baseUrl, '/') . '/assets/' . $oldTagSlug . '/posts/' . $oldPostSlug . '.html';
+    $newPostPath = rtrim($baseUrl, '/') . '/assets/' . $newTagSlug . '/posts/' . $newPostSlug . '.html';
     $html = str_replace($oldPostPath, $newPostPath, $html);
+
     file_put_contents($htmlPath, $html);
 }
 
@@ -167,20 +203,152 @@ if(isset($_GET['cancel']) && $_GET['cancel'] == '1'){
     exit;
 }
 
+// === PROJECT MANAGEMENT HANDLER (NEW) ===
+if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['project_action'])){
+    $projectName = trim($_POST['project_name'] ?? '');
+    $tagSlug = slugify($projectName);
+    $bio = trim($_POST['project_bio'] ?? '');
+
+    // Reload projects array inside POST logic
+    $projectsArr = json_decode(file_get_contents($projectsJsonFile), true);
+    if(!is_array($projectsArr)) $projectsArr = [];
+
+    if($projectName === ''){
+        $errors[] = "Project Name is required.";
+    } elseif ($tagSlug === ''){
+        $errors[] = "Project Name generates an empty slug.";
+    }
+
+    $idx = findProjectIndexBySlug($projectsArr, $tagSlug);
+    $isEditing = ($idx !== false);
+
+    if($_POST['project_action'] === 'save' && count($errors) === 0){
+        $message = $isEditing ? "Project '$projectName' updated successfully." : "Project '$projectName' created successfully.";
+
+        // Define paths
+        $projectBaseDirForThumb = $projectBaseDir . '/' . $tagSlug;
+        $projectImagesDir = $projectBaseDirForThumb . '/images';
+        $projectPostsDir = $projectBaseDirForThumb . '/posts';
+
+        // Ensure directories exist
+        if(!is_dir($projectImagesDir)) mkdir($projectImagesDir, 0755, true);
+        if(!is_dir($projectPostsDir)) mkdir($projectPostsDir, 0755, true);
+
+        $thumbnailPathRel = $projectsArr[$idx]['thumbnail'] ?? '';
+
+        // === Handle thumbnail deletion ===
+        if($isEditing && isset($_POST['delete_thumbnail']) && $_POST['delete_thumbnail'] == '1'){
+            if(!empty($thumbnailPathRel)){
+                // Search for the file based on the required naming convention
+                $filesToDelete = glob($projectImagesDir . '/' . $tagSlug . '-thumbnail.*');
+                foreach($filesToDelete as $f) if(is_file($f)) @unlink($f);
+                $thumbnailPathRel = '';
+            }
+        }
+
+        // === Thumbnail upload/replace ===
+        if(isset($_FILES['project_thumbnail']) && $_FILES['project_thumbnail']['name'] !== ''){
+            $ext = strtolower(pathinfo($_FILES['project_thumbnail']['name'], PATHINFO_EXTENSION)) ?: 'jpg';
+            $thumbTargetBase = $tagSlug . '-thumbnail';
+            $thumbTarget = $projectImagesDir . '/' . $thumbTargetBase . '.' . $ext;
+
+            // Clean up old thumbnail files in case the extension changed
+            $oldFiles = glob($projectImagesDir . '/' . $thumbTargetBase . '.*');
+            foreach($oldFiles as $f) if(is_file($f)) @unlink($f);
+
+            if(move_uploaded_file($_FILES['project_thumbnail']['tmp_name'], $thumbTarget)){
+                // Path must be /assets/<project-name>/images/<project-name>-thumbnail.ext
+                $thumbnailPathRel = rtrim($baseUrl, '/') . '/assets/' . $tagSlug . '/images/' . $thumbTargetBase . '.' . $ext;
+            } else {
+                $errors[] = "Failed uploading project thumbnail.";
+            }
+        } else if ($isEditing && isset($_POST['delete_thumbnail']) && $_POST['delete_thumbnail'] == '0'){
+            // If editing and no new upload, check if a file exists on disk based on naming rule
+            $thumbnailPathRel = getProjectThumbnailPath($projectBaseDir, $tagSlug, $baseUrl);
+        }
+
+        $projectData = [
+            "name" => $projectName,
+            "bio" => $bio,
+            "thumbnail" => $thumbnailPathRel,
+            "slug" => $tagSlug // Store slug for easy lookup
+        ];
+
+        if($isEditing){
+            $projectsArr[$idx] = $projectData;
+        } else {
+            // Only add if it doesn't exist (prevents adding if slug already matched)
+            if(findProjectIndexBySlug($projectsArr, $tagSlug) === false){
+                 $projectsArr[] = $projectData;
+            } else {
+                 $errors[] = "Project with name '$projectName' already exists.";
+            }
+        }
+
+        if(count($errors) === 0){
+            file_put_contents($projectsJsonFile, json_encode($projectsArr, JSON_PRETTY_PRINT));
+            header("Location: " . $_SERVER['PHP_SELF'] . "?msg=" . urlencode($message) . "&edit_project=" . urlencode($tagSlug));
+            exit;
+        }
+
+    } elseif($_POST['project_action'] === 'delete' && count($errors) === 0){
+        $origProjectName = $_POST['project_name'];
+        if($idx === false){
+            $errors[] = "Project not found for deletion.";
+        } else {
+            // Check for existing posts in this project
+            $postsInProject = array_filter($postsArr, function($p) use ($origProjectName) {
+                return ($p['tag'] ?? '') === $origProjectName;
+            });
+            if(!empty($postsInProject)){
+                $errors[] = "Cannot delete project '$origProjectName'. It still contains " . count($postsInProject) . " posts.";
+            } else {
+                // Delete project directory structure
+                $projectBaseDirForDelete = $projectBaseDir . '/' . $tagSlug;
+
+                $deleteDirContents = function($dir) use (&$deleteDirContents) {
+                    if (!is_dir($dir)) return;
+                    $items = glob($dir . '/*');
+                    foreach($items as $item) {
+                        if (is_dir($item)) {
+                            $deleteDirContents($item);
+                            @rmdir($item);
+                        } else {
+                            @unlink($item);
+                        }
+                    }
+                };
+
+                // Delete contents and the main project folder
+                $deleteDirContents($projectBaseDirForDelete);
+                @rmdir($projectBaseDirForDelete);
+
+                array_splice($projectsArr, $idx, 1);
+                file_put_contents($projectsJsonFile, json_encode($projectsArr, JSON_PRETTY_PRINT));
+                $message = "🗑️ Project '$origProjectName' deleted successfully!";
+                header("Location: " . $_SERVER['PHP_SELF'] . "?msg=" . urlencode($message));
+                exit;
+            }
+        }
+    }
+}
+// END PROJECT MANAGEMENT HANDLER
+
 // === DELETE POST (full delete) ===
-if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_post']) && !empty($_POST['delete_post'])){
+if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_post']) && !empty($_POST['delete_post']) && !isset($_POST['project_action'])){
     $slugToDelete = $_POST['delete_post'];
+    $tagSlugToDelete = $_POST['delete_tag_slug']; // NEW
 
     $foundIndex = findPostIndexBySlug($postsArr, $slugToDelete);
     if($foundIndex === false){
         $errors[] = "Post not found: $slugToDelete";
     } else {
         // Delete HTML file
-        $postFilePath = $postsDir . '/' . $slugToDelete . '.html';
+        $postFilePath = $projectBaseDir . '/' . $tagSlugToDelete . '/posts/' . $slugToDelete . '.html'; // UPDATED PATH
         if(file_exists($postFilePath)) @unlink($postFilePath);
 
         // Delete post images folder
-        $postImagesDir = $imagesBase . '/' . $slugToDelete;
+        $postImagesDir = $projectBaseDir . '/' . $tagSlugToDelete . '/images/' . $slugToDelete; // UPDATED PATH
         if(is_dir($postImagesDir)){
             $files = glob($postImagesDir . '/*');
             foreach($files as $f) if(is_file($f)) @unlink($f);
@@ -202,7 +370,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_post']) && !emp
 }
 
 // === CREATE OR UPDATE POST ===
-if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && count($errors) === 0){
+if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && !isset($_POST['project_action']) && count($errors) === 0){
     // collect inputs
     $title = trim($_POST['title'] ?? '');
     $date = trim($_POST['date'] ?? date('Y-m-d'));
@@ -213,6 +381,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && cou
     $imagesurls = trim($_POST['images'] ?? '');
     $imagesUrlList = array_filter(array_map('trim', explode(',', $imagesurls)));
 
+    // Project tag inputs (NEW)
+    $tag = trim($_POST['tag_hidden'] ?? ''); // Use the hidden field
+    if($tag === '') $errors[] = "Project Tag is required for the post.";
+    $tagSlug = slugify($tag); // Slugify the final tag
+
     // Save form inputs into session so they persist after redirect and the form doesn't auto-clear
     $_SESSION['form_data'] = [
         'title' => $title,
@@ -221,7 +394,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && cou
         'location' => $location,
         'bio' => $bio,
         'content' => $content,
-        'images' => $imagesurls
+        'images' => $imagesurls,
+        'tag' => $tag
     ];
 
     if($title === '') $errors[] = "Title is required.";
@@ -234,7 +408,9 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && cou
         // === UPDATE EXISTING POST ===
         if(isset($_POST['edit_slug']) && $_POST['edit_slug'] !== ''){
             $origSlug = $_POST['edit_slug'];
+            $origTagSlug = $_POST['orig_tag_slug']; // NEW
             $idx = findPostIndexBySlug($postsArr, $origSlug);
+
             if($idx === false){
                 $errors[] = "Post not found for editing: $origSlug";
             } else {
@@ -243,71 +419,71 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && cou
                 if($newBase === '') $newBase = 'post';
                 $newSlug = makeUniqueSlug($postsArr, $newBase, $idx);
 
-                $oldPostFilePath = $postsDir . '/' . $origSlug . '.html';
-                $oldImagesDir = $imagesBase . '/' . $origSlug;
-                $newPostFilePath = $postsDir . '/' . $newSlug . '.html';
-                $newImagesDir = $imagesBase . '/' . $newSlug;
+                // Define NEW file paths based on new tag and slug
+                $newTagSlug = $tagSlug;
 
-                // If slug changed, rename files/folders and update HTML inside file to new image paths
-                if($newSlug !== $origSlug){
-                    // Ensure postsDir exists
-                    if(!is_dir($postsDir)) mkdir($postsDir, 0755, true);
+                $oldPostFilePath = $projectBaseDir . '/' . $origTagSlug . '/posts/' . $origSlug . '.html';
+                $oldImagesDir = $projectBaseDir . '/' . $origTagSlug . '/images/' . $origSlug;
+                $newPostFilePath = $projectBaseDir . '/' . $newTagSlug . '/posts/' . $newSlug . '.html';
+                $newImagesDir = $projectBaseDir . '/' . $newTagSlug . '/images/' . $newSlug;
+                $newPostsDir = $projectBaseDir . '/' . $newTagSlug . '/posts';
+                $newProjectImagesDir = $projectBaseDir . '/' . $newTagSlug . '/images';
+
+                // If slug or tag changed, handle file movement
+                if($newSlug !== $origSlug || $newTagSlug !== $origTagSlug){
+                    // Ensure new project folders exist
+                    if(!is_dir($newPostsDir)) mkdir($newPostsDir, 0755, true);
+                    if(!is_dir($newProjectImagesDir)) mkdir($newProjectImagesDir, 0755, true);
+
                     // rename images dir (safe)
                     if(is_dir($oldImagesDir)){
                         safeRenameDir($oldImagesDir, $newImagesDir);
                     } else {
-                        // ensure new dir exists
                         if(!is_dir($newImagesDir)) mkdir($newImagesDir, 0755, true);
                     }
 
                     // rename post html (if exists) and patch image paths inside
                     if(file_exists($oldPostFilePath)){
-                        // first update paths inside old file to new slug
-                        replaceSlugInHtml($oldPostFilePath, $origSlug, $newSlug, $baseUrl);
-                        // then rename html file to new slug name
+                        // first update paths inside old file to new slug AND new tag
+                        replaceSlugInHtml($oldPostFilePath, $origTagSlug, $newTagSlug, $origSlug, $newSlug, $baseUrl);
+                        // then rename/move html file
                         @rename($oldPostFilePath, $newPostFilePath);
-                    } else {
-                        // if old file doesn't exist, we'll create later
                     }
 
                     // Update postsArr entry paths for this item
-                    $postsArr[$idx]['file'] = rtrim($baseUrl, '/') . '/assets/posts/' . $newSlug . '.html';
+                    $postsArr[$idx]['tag'] = $tag;
+                    $postsArr[$idx]['file'] = rtrim($baseUrl, '/') . '/assets/' . $newTagSlug . '/posts/' . $newSlug . '.html';
                     // update thumbnail path if exists
                     if(!empty($postsArr[$idx]['thumbnail'])){
-                        $postsArr[$idx]['thumbnail'] = str_replace('/assets/images/' . $origSlug . '/', '/assets/images/' . $newSlug . '/', $postsArr[$idx]['thumbnail']);
+                        $oldThumbPrefix = '/assets/' . $origTagSlug . '/images/' . $origSlug . '/';
+                        $newThumbPrefix = '/assets/' . $newTagSlug . '/images/' . $newSlug . '/';
+                        $postsArr[$idx]['thumbnail'] = str_replace($oldThumbPrefix, $newThumbPrefix, $postsArr[$idx]['thumbnail']);
                     }
                 } else {
-                    // slug didn't change — ensure images dir exists
-                    if(!is_dir($oldImagesDir)) mkdir($oldImagesDir, 0755, true);
+                    // slug and tag didn't change — ensure images dir exists
                     $newImagesDir = $oldImagesDir;
                     $newPostFilePath = $oldPostFilePath;
+                    if(!is_dir($newImagesDir)) mkdir($newImagesDir, 0755, true);
                 }
 
-                // Ensure images dir exists for subsequent uploads
-                if(!is_dir($newImagesDir)) mkdir($newImagesDir, 0755, true);
-
                 // Load current uploaded images (after potential rename)
-                $existingImages = getImagesForSlug($imagesBase, $newSlug, $baseUrl);
+                $existingImages = getImagesForSlug($projectBaseDir, $newTagSlug, $newSlug, $baseUrl);
 
                 // === Handle deletion of selected existing images ===
                 if(isset($_POST['delete_images']) && is_array($_POST['delete_images'])){
                     foreach($_POST['delete_images'] as $delRel){
-                        // delRel expected as basename or full web path. Normalize to local file and delete.
                         $delRel = trim($delRel);
                         if($delRel === '') continue;
-                        // If full web path, extract filename
                         $fname = basename(parse_url($delRel, PHP_URL_PATH));
                         $localPath = rtrim($newImagesDir, '/\\') . '/' . $fname;
                         if(file_exists($localPath)) @unlink($localPath);
                     }
-                    // refresh existingImages list
-                    $existingImages = getImagesForSlug($imagesBase, $newSlug, $baseUrl);
+                    $existingImages = getImagesForSlug($projectBaseDir, $newTagSlug, $newSlug, $baseUrl);
                 }
 
                 // === Handle thumbnail deletion ===
                 $thumbnailPathRel = $postsArr[$idx]['thumbnail'] ?? '';
                 if(isset($_POST['delete_thumbnail']) && $_POST['delete_thumbnail'] == '1'){
-                    // delete thumbnail file if exists in images folder
                     if(!empty($thumbnailPathRel)){
                         $thumbName = basename(parse_url($thumbnailPathRel, PHP_URL_PATH));
                         $thumbLocal = rtrim($newImagesDir, '/\\') . '/' . $thumbName;
@@ -321,7 +497,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && cou
                     $ext = strtolower(pathinfo($_FILES['thumbnail']['name'], PATHINFO_EXTENSION)) ?: 'jpg';
                     $thumbTarget = $newImagesDir . '/thumbnail.' . $ext;
                     if(move_uploaded_file($_FILES['thumbnail']['tmp_name'], $thumbTarget)){
-                        $thumbnailPathRel = rtrim($baseUrl, '/') . '/assets/images/' . $newSlug . '/thumbnail.' . $ext;
+                        $thumbnailPathRel = rtrim($baseUrl, '/') . '/assets/' . $newTagSlug . '/images/' . $newSlug . '/thumbnail.' . $ext;
                     } else {
                         $errors[] = "Failed uploading thumbnail.";
                     }
@@ -332,11 +508,9 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && cou
                     $names = $_FILES['upload_images']['name'];
                     $tmps = $_FILES['upload_images']['tmp_name'];
                     for($i=0;$i<count($names);$i++){
-                        $n = $names[$i];
-                        $t = $tmps[$i];
+                        $n = $names[$i]; $t = $tmps[$i];
                         if(empty($n) || empty($t)) continue;
                         $ext = strtolower(pathinfo($n, PATHINFO_EXTENSION)) ?: 'jpg';
-                        // set target name based on count of files currently in folder
                         $existingFiles = array_values(array_filter(glob($newImagesDir . '/image*')));
                         $nextIndex = count($existingFiles) + 1;
                         $imgTarget = $newImagesDir . '/image' . $nextIndex . '.' . $ext;
@@ -346,7 +520,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && cou
                             $imgTarget = $newImagesDir . '/image' . $nextIndex . '-' . $k . '.' . $ext;
                         }
                         if(move_uploaded_file($t, $imgTarget)){
-                            $existingImages[] = rtrim($baseUrl, '/') . '/assets/images/' . $newSlug . '/' . basename($imgTarget);
+                            $existingImages[] = rtrim($baseUrl, '/') . '/assets/' . $newTagSlug . '/images/' . $newSlug . '/' . basename($imgTarget);
                         } else {
                             $errors[] = "Failed uploading image: $n";
                         }
@@ -363,17 +537,14 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && cou
                 }
 
                 // Rebuild imagesHTML from actual folder images and manual URLs
-                // prefer actual folder images first
-                $folderImages = getImagesForSlug($imagesBase, $newSlug, $baseUrl);
+                $folderImages = getImagesForSlug($projectBaseDir, $newTagSlug, $newSlug, $baseUrl);
                 $allImages = $folderImages;
-                // append non-folder URLs (imagesUrlList) that are not file in folder
                 foreach($imagesUrlList as $url){
                     if($url === '') continue;
                     $u = $url;
                     if(!preg_match('#^https?://#', $u)){
                         $u = rtrim($baseUrl, '/') . '/' . ltrim($u, '/');
                     }
-                    // avoid duplicates
                     if(!in_array($u, $allImages, true)){
                         $allImages[] = $u;
                     }
@@ -384,7 +555,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && cou
                 $imagesHTML = buildImagesHTML($allImages);
 
                 // Update or rebuild post HTML file
-                $postFilePath = $postsDir . '/' . $newSlug . '.html';
+                $postFilePath = $newPostFilePath;
                 $displayTitle = htmlspecialchars($title);
                 $displayDate = htmlspecialchars($date);
                 $displayTime = htmlspecialchars($time);
@@ -392,7 +563,9 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && cou
                 $displayBio = nl2br(htmlspecialchars($bio));
                 $displayContent = $content;
 
-                // If file exists, patch content blocks, else create new
+                // ** New Footer Variables **
+                $displayProjectName = htmlspecialchars($tag); // The Project Name
+
                 if(file_exists($postFilePath)){
                     $html = file_get_contents($postFilePath);
                     $html = preg_replace('#<h1>.*?</h1>#is', '<h1>' . htmlspecialchars($title) . '</h1>', $html);
@@ -402,9 +575,16 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_post']) && cou
                     $html = preg_replace('#<div class="bio">.*?</div>#is', '<div class="bio">'.nl2br(htmlspecialchars($bio)).'</div>', $html);
                     $html = preg_replace('#<div class="content">.*?</div>#is', '<div class="content">'.$content.'</div>', $html);
                     $html = preg_replace('#<div class="images">.*?</div>#is', '<div class="images">'.$imagesHTML.'</div>', $html);
+                    // 💥 UPDATE FOOTER LINK TEXT AND HREF (Patching for existing file)
+                    $html = preg_replace(
+                        '#<footer>.*?</footer>#is',
+                        '<footer><a href="javascript:history.back()" class="back">← Back to ' . $displayProjectName . '</a></footer>',
+                        $html
+                    );
                     file_put_contents($postFilePath, $html);
                 } else {
-                    // create fresh post html based on template used in original
+                    // create fresh post html based on template
+                    // === START FUTURISTIC TEMPLATE INSERTION 1/2 (REPLACED) ===
                     $postHTML = <<<HTML
 <!DOCTYPE html>
 <html lang="en">
@@ -580,20 +760,14 @@ a.back:hover {
 <div class="container">
 <h1>{$displayTitle}</h1>
 <div class="meta">
-📅 <span id="date">{$displayDate}</span> |
-🕓 <span id="time">{$displayTime}</span> |
+🗓️ <span id="date">{$displayDate}</span> |
+⏰ <span id="time">{$displayTime}</span> |
 📍 <span id="location">{$displayLocation}</span>
 </div>
-<div class="bio">
-{$displayBio}
-</div>
-<div class="content">
-{$displayContent}
-</div>
-<div class="images">
-{$imagesHTML}
-</div>
-<footer><a href="{$baseUrl}/" class="back">← Back to Blog Root</a></footer>
+<div class="bio">{$displayBio}</div>
+<div class="content">{$displayContent}</div>
+<div class="images">{$imagesHTML}</div>
+<footer><a href="javascript:history.back()" class="back">← Back to {$displayProjectName}</a></footer>
 </div>
 <div class="popup" id="popup"><span id="close">&times;</span><img src="" alt="popup image" id="popup-img"></div>
 <script>
@@ -612,10 +786,12 @@ popup.addEventListener('click',e=>{if(e.target===popup)popup.classList.remove('a
 </body>
 </html>
 HTML;
+                    // === END FUTURISTIC TEMPLATE INSERTION 1/2 (REPLACED) ===
                     file_put_contents($postFilePath, $postHTML);
                 }
 
                 // Update postsArr entry
+                $postsArr[$idx]['tag'] = $tag;
                 $postsArr[$idx]['title'] = $title;
                 $postsArr[$idx]['date'] = $date . ' ' . $time;
                 $postsArr[$idx]['desc'] = $bio;
@@ -623,31 +799,28 @@ HTML;
                 if(!empty($thumbnailPathRel)) $postsArr[$idx]['thumbnail'] = $thumbnailPathRel;
                 else $postsArr[$idx]['thumbnail'] = $postsArr[$idx]['thumbnail'] ?? '';
 
-                // If slug changed, also update 'file' key above already set; ensure correct
-                $postsArr[$idx]['file'] = rtrim($baseUrl, '/') . '/assets/posts/' . $newSlug . '.html';
+                $postsArr[$idx]['file'] = rtrim($baseUrl, '/') . '/assets/' . $newTagSlug . '/posts/' . $newSlug . '.html';
 
                 // Save posts.json
                 file_put_contents($jsonFile, json_encode($postsArr, JSON_PRETTY_PRINT));
 
                 $message = "✏️ Post '" . ($newSlug) . "' updated successfully!";
-                header("Location: " . $_SERVER['PHP_SELF'] . "?msg=" . urlencode($message) . "&edit=" . urlencode($newSlug));
+                header("Location: " . $_SERVER['PHP_SELF'] . "?msg=" . urlencode($message) . "&edit=" . urlencode($newSlug) . "&tag=" . urlencode($tag));
                 exit;
             }
         } // end edit branch
 
         // === CREATE NEW POST ===
         else {
-            // generate unique slug
             $slugBase = slugify($title);
             if($slugBase === '') $slugBase = 'post';
             $slug = makeUniqueSlug($postsArr, $slugBase, null);
 
-            $postImagesDir = $imagesBase . '/' . $slug;
-            if(!is_dir($postImagesDir)){
-                if(!mkdir($postImagesDir, 0755, true)){
-                    $errors[] = "Could not create post images folder: $postImagesDir";
-                }
-            }
+            $postImagesDir = $projectBaseDir . '/' . $tagSlug . '/images/' . $slug; // UPDATED PATH
+            $postPostsDir = $projectBaseDir . '/' . $tagSlug . '/posts'; // UPDATED PATH
+
+            if(!is_dir($postImagesDir)) mkdir($postImagesDir, 0755, true);
+            if(!is_dir($postPostsDir)) mkdir($postPostsDir, 0755, true);
 
             $uploadedImages = [];
             $thumbnailPathRel = '';
@@ -657,7 +830,7 @@ HTML;
                 $ext = strtolower(pathinfo($_FILES['thumbnail']['name'], PATHINFO_EXTENSION)) ?: 'jpg';
                 $thumbTarget = $postImagesDir . '/thumbnail.' . $ext;
                 if(move_uploaded_file($_FILES['thumbnail']['tmp_name'], $thumbTarget)){
-                    $thumbnailPathRel = rtrim($baseUrl, '/') . '/assets/images/' . $slug . '/thumbnail.' . $ext;
+                    $thumbnailPathRel = rtrim($baseUrl, '/') . '/assets/' . $tagSlug . '/images/' . $slug . '/thumbnail.' . $ext;
                 } else {
                     $errors[] = "Failed uploading thumbnail.";
                 }
@@ -668,8 +841,7 @@ HTML;
                 $names = $_FILES['upload_images']['name'];
                 $tmps = $_FILES['upload_images']['tmp_name'];
                 for($i=0;$i<count($names);$i++){
-                    $n = $names[$i];
-                    $t = $tmps[$i];
+                    $n = $names[$i]; $t = $tmps[$i];
                     if(empty($n) || empty($t)) continue;
                     $ext = strtolower(pathinfo($n, PATHINFO_EXTENSION)) ?: 'jpg';
                     $existingFiles = array_values(array_filter(glob($postImagesDir . '/image*')));
@@ -681,7 +853,7 @@ HTML;
                         $imgTarget = $postImagesDir . '/image' . $nextIndex . '-' . $k . '.' . $ext;
                     }
                     if(move_uploaded_file($t, $imgTarget)){
-                        $uploadedImages[] = rtrim($baseUrl, '/') . '/assets/images/' . $slug . '/' . basename($imgTarget);
+                        $uploadedImages[] = rtrim($baseUrl, '/') . '/assets/' . $tagSlug . '/images/' . $slug . '/' . basename($imgTarget);
                     } else {
                         $errors[] = "Failed uploading image: $n";
                     }
@@ -694,7 +866,7 @@ HTML;
                 $ext = strtolower(pathinfo($firstImgAbs, PATHINFO_EXTENSION));
                 $thumbTargetAbs = $postImagesDir . '/thumbnail.' . $ext;
                 if(@copy($firstImgAbs, $thumbTargetAbs)){
-                    $thumbnailPathRel = rtrim($baseUrl, '/') . '/assets/images/' . $slug . '/thumbnail.' . $ext;
+                    $thumbnailPathRel = rtrim($baseUrl, '/') . '/assets/' . $tagSlug . '/images/' . $slug . '/thumbnail.' . $ext;
                 } else {
                     $thumbnailPathRel = $uploadedImages[0];
                 }
@@ -714,7 +886,7 @@ HTML;
 
             // Build post HTML
             $postFileName = $slug . '.html';
-            $postFilePath = $postsDir . '/' . $postFileName;
+            $postFilePath = $postPostsDir . '/' . $postFileName;
             $displayDate = htmlspecialchars($date);
             $displayTime = htmlspecialchars($time);
             $displayLocation = htmlspecialchars($location);
@@ -722,6 +894,10 @@ HTML;
             $displayBio = nl2br(htmlspecialchars($bio));
             $displayContent = $content;
 
+            // ** New Footer Variables **
+            $displayProjectName = htmlspecialchars($tag); // The Project Name
+
+            // === START FUTURISTIC TEMPLATE INSERTION 2/2 (REPLACED) ===
             $postHTML = <<<HTML
 <!DOCTYPE html>
 <html lang="en">
@@ -897,20 +1073,14 @@ a.back:hover {
 <div class="container">
 <h1>{$displayTitle}</h1>
 <div class="meta">
-📅 <span id="date">{$displayDate}</span> |
-🕓 <span id="time">{$displayTime}</span> |
+🗓️ <span id="date">{$displayDate}</span> |
+⏰ <span id="time">{$displayTime}</span> |
 📍 <span id="location">{$displayLocation}</span>
 </div>
-<div class="bio">
-{$displayBio}
-</div>
-<div class="content">
-{$displayContent}
-</div>
-<div class="images">
-{$imagesHTML}
-</div>
-<footer><a href="{$baseUrl}/" class="back">← Back to Blog Root</a></footer>
+<div class="bio">{$displayBio}</div>
+<div class="content">{$displayContent}</div>
+<div class="images">{$imagesHTML}</div>
+<footer><a href="javascript:history.back()" class="back">← Back to {$displayProjectName}</a></footer>
 </div>
 <div class="popup" id="popup"><span id="close">&times;</span><img src="" alt="popup image" id="popup-img"></div>
 <script>
@@ -929,18 +1099,20 @@ popup.addEventListener('click',e=>{if(e.target===popup)popup.classList.remove('a
 </body>
 </html>
 HTML;
+            // === END FUTURISTIC TEMPLATE INSERTION 2/2 (REPLACED) ===
 
             if(file_put_contents($postFilePath, $postHTML)){
                 $postsArr[] = [
+                    "tag" => $tag,
                     "title" => $title,
                     "date" => $date . ' ' . $time,
                     "thumbnail" => $thumbnailPathRel ?: ($uploadedImages[0] ?? ''),
-                    "file" => rtrim($baseUrl, '/') . '/assets/posts/' . $postFileName,
+                    "file" => rtrim($baseUrl, '/') . '/assets/' . $tagSlug . '/posts/' . $postFileName,
                     "desc" => $bio,
                     "location" => $location
                 ];
                 file_put_contents($jsonFile, json_encode($postsArr, JSON_PRETTY_PRINT));
-                $message = "✅ Post created successfully: " . rtrim($baseUrl, '/') . "/assets/posts/{$postFileName}";
+                $message = "✅ Post created successfully: " . rtrim($baseUrl, '/') . "/assets/{$tagSlug}/posts/{$postFileName}";
                 header("Location: " . $_SERVER['PHP_SELF'] . "?msg=" . urlencode($message));
                 exit;
             } else {
@@ -954,12 +1126,21 @@ HTML;
 $editData = null;
 if(isset($_GET['edit']) && $_GET['edit'] !== ''){
     $slugEdit = $_GET['edit'];
+
     $idx = findPostIndexBySlug($postsArr, $slugEdit);
     if($idx !== false){
         $p = $postsArr[$idx];
         $editData = $p;
+
+        // Get tag from JSON or URL (if editing an older post)
+        $tagEdit = $p['tag'] ?? (isset($_GET['tag']) ? $_GET['tag'] : 'default');
+        $tagSlug = slugify($tagEdit);
+
+        $editData['tag'] = $tagEdit;
+        $editData['orig_tag_slug'] = $tagSlug;
+
         // read HTML to get bio and content if available
-        $htmlPath = $postsDir . '/' . $slugEdit . '.html';
+        $htmlPath = $projectBaseDir . '/' . $tagSlug . '/posts/' . $slugEdit . '.html';
         if(file_exists($htmlPath)){
             $html = file_get_contents($htmlPath);
             if(preg_match('#<div class="bio">(.*?)</div>#is', $html, $m)) {
@@ -978,7 +1159,7 @@ if(isset($_GET['edit']) && $_GET['edit'] !== ''){
         }
 
         // load images list & thumbnail from folder
-        $editData['images_list'] = getImagesForSlug($imagesBase, $slugEdit, $baseUrl);
+        $editData['images_list'] = getImagesForSlug($projectBaseDir, $tagSlug, $slugEdit, $baseUrl);
         $editData['thumbnail'] = $p['thumbnail'] ?? '';
     }
 }
@@ -991,7 +1172,8 @@ $formData = [
     'location' => $locationDefault,
     'bio' => '',
     'content' => '',
-    'images' => ''
+    'images' => '',
+    'tag' => '' // NEW
 ];
 if(!isset($editData) || $editData === null){
     if(isset($_SESSION['form_data']) && is_array($_SESSION['form_data'])){
@@ -1002,6 +1184,14 @@ if(!isset($editData) || $editData === null){
 
 // Load any message from GET (after PRG)
 if(isset($_GET['msg'])) $message = htmlspecialchars($_GET['msg']);
+
+// Load projects list for the dropdown
+$projectsList = [];
+foreach($projectsArr as $p){
+    $projectsList[slugify($p['name'])] = $p['name'];
+}
+$currentTag = htmlspecialchars($editData['tag'] ?? ($formData['tag'] ?? ''));
+$currentTagSlug = slugify($currentTag);
 
 // Start HTML output
 ?>
@@ -1028,10 +1218,49 @@ if(count($errors)>0){
 <form method="POST" enctype="multipart/form-data" id="postForm">
 <?php if($editData): ?>
 <input type="hidden" name="edit_slug" value="<?php echo htmlspecialchars(pathinfo($editData['file'], PATHINFO_FILENAME)); ?>">
+<input type="hidden" name="orig_tag_slug" value="<?php echo htmlspecialchars($editData['orig_tag_slug'] ?? $currentTagSlug); ?>">
 <?php endif; ?>
 
 <label>Post Title</label>
 <input type="text" name="title" required placeholder="My crazy post title" value="<?php echo htmlspecialchars($editData['title'] ?? $formData['title']); ?>">
+
+<label>Tag / Project Name</label>
+<select name="tag_select" id="tag_select" onchange="document.getElementById('tag_new').value = this.value === 'new' ? '' : this.options[this.selectedIndex].text; document.getElementById('tag_new').style.display = this.value === 'new' ? 'block' : 'none';">
+    <option value="">-- Select Existing Project --</option>
+    <?php foreach($projectsList as $slug => $name): ?>
+        <option value="<?php echo htmlspecialchars($slug); ?>" <?php if($currentTagSlug === $slug) echo 'selected'; ?>>
+            <?php echo htmlspecialchars($name); ?>
+        </option>
+    <?php endforeach; ?>
+    <option value="new" <?php if($currentTag === '' || (!empty($currentTag) && !isset($projectsList[$currentTagSlug]))) echo 'selected'; ?>>-- New Project --</option>
+</select>
+<input type="text" name="tag_new" id="tag_new" placeholder="Type New Project Name"
+    value="<?php echo htmlspecialchars($currentTag); ?>"
+    style="margin-top: 5px; <?php if($currentTag === '' || !isset($projectsList[$currentTagSlug])) echo 'display:block;'; else echo 'display:none;'; ?>">
+<input type="hidden" name="tag_hidden" id="tag_hidden" value="<?php echo htmlspecialchars($currentTag); ?>">
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const select = document.getElementById('tag_select');
+        const textInput = document.getElementById('tag_new');
+
+        // Initial setup for the text input display
+        if (select.value && select.value !== 'new' && select.value !== '') {
+            textInput.style.display = 'none';
+        } else {
+            textInput.style.display = 'block';
+        }
+
+        document.getElementById('postForm').addEventListener('submit', function() {
+            const selectedSlug = select.value;
+            // Set tag_hidden to the value in the text box if 'New' or nothing is selected, otherwise use the selected project name.
+            if (selectedSlug === 'new' || selectedSlug === '') {
+                document.getElementById('tag_hidden').value = textInput.value;
+            } else {
+                document.getElementById('tag_hidden').value = select.options[select.selectedIndex].text;
+            }
+        });
+    });
+</script>
 
 <label>Date</label>
 <input type="date" name="date" value="<?php echo htmlspecialchars($editData['date'] ? explode(' ', $editData['date'])[0] : $formData['date']); ?>" required>
@@ -1108,19 +1337,108 @@ if(is_array($postsArr) && count($postsArr) > 0){
     echo '<ul>';
     foreach($postsArr as $p){
         $slug = pathinfo($p['file'], PATHINFO_FILENAME);
+        $tag = htmlspecialchars($p['tag'] ?? 'Untagged');
+        $tagSlug = slugify($p['tag'] ?? 'Untagged');
         $title = htmlspecialchars($p['title']);
         echo '<li style="margin-bottom:6px;">';
-        echo "$title ";
+        echo "[$tag] $title ";
         // Edit link
-        echo ' <a href="?edit='.$slug.'" style="background:#0099ff;color:#fff;padding:5px 10px;border-radius:4px;text-decoration:none;margin-left:8px;">Edit</a> ';
+        echo ' <a href="?edit='.$slug.'&tag='.urlencode($tag).'" style="background:#0099ff;color:#fff;padding:5px 10px;border-radius:4px;text-decoration:none;margin-left:8px;">Edit</a> ';
         echo '<form method="POST" style="display:inline;margin-left:6px;" onsubmit="return confirm(\'Delete this post?\');">';
         echo '<input type="hidden" name="delete_post" value="'.$slug.'">';
+        echo '<input type="hidden" name="delete_tag_slug" value="'.$tagSlug.'">';
         echo '<button type="submit" class="danger">Delete</button>';
         echo '</form></li>';
     }
     echo '</ul>';
 }else{
     echo '<p>No posts yet.</p>';
+}
+?>
+
+<hr>
+<h2>Project Management</h2>
+
+<?php
+$projectEditData = null;
+if(isset($_GET['edit_project']) && $_GET['edit_project'] !== ''){
+    $slugEdit = $_GET['edit_project'];
+    $idx = findProjectIndexBySlug($projectsArr, $slugEdit);
+    if($idx !== false){
+        $p = $projectsArr[$idx];
+        $projectEditData = $p;
+        $projectEditData['thumbnail'] = getProjectThumbnailPath($projectBaseDir, $slugEdit, $baseUrl);
+    }
+}
+
+$pFormData = [
+    'name' => '',
+    'bio' => ''
+];
+if($projectEditData){
+    $pFormData['name'] = $projectEditData['name'];
+    $pFormData['bio'] = $projectEditData['bio'];
+}
+
+?>
+
+<form method="POST" enctype="multipart/form-data" id="projectForm">
+    <input type="hidden" name="project_action" value="save">
+
+    <label>Project Name</label>
+    <input type="text" name="project_name" required placeholder="My Amazing Project" value="<?php echo htmlspecialchars($pFormData['name']); ?>">
+
+    <label>Project Bio / Summary</label>
+    <textarea name="project_bio" rows="2" placeholder="Short description or bio" required><?php echo htmlspecialchars($pFormData['bio']); ?></textarea>
+
+    <?php if(isset($projectEditData) && $projectEditData !== null): ?>
+    <div>
+        <label>Thumbnail (existing)</label>
+        <?php if(!empty($projectEditData['thumbnail'])): ?>
+            <img src="<?php echo htmlspecialchars($projectEditData['thumbnail']); ?>" class="thumb-preview" alt="thumbnail">
+            <div>
+                <label><input type="checkbox" name="delete_thumbnail" value="1"> Delete current thumbnail</label>
+            </div>
+        <?php else: ?>
+            <small>No thumbnail yet.</small>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
+    <label>Project Thumbnail</label>
+    <input type="file" name="project_thumbnail" accept="image/*">
+
+    <div style="margin-top:12px;">
+        <button type="submit"><?php echo $projectEditData ? 'Update Project' : 'Create Project'; ?></button>
+        <?php if($projectEditData): ?>
+            <a class="smallbtn" href="<?php echo strtok($_SERVER['REQUEST_URI'], '?'); ?>">Cancel Edit</a>
+        <?php endif; ?>
+    </div>
+</form>
+
+<h3>Current Projects</h3>
+<?php
+// Reload projects array in case project actions happened above
+$projectsArr = json_decode(file_get_contents($projectsJsonFile), true);
+if(is_array($projectsArr) && count($projectsArr) > 0){
+    echo '<ul>';
+    foreach($projectsArr as $p){
+        $tag = htmlspecialchars($p['name']);
+        $slug = slugify($p['name']);
+        $thumb = getProjectThumbnailPath($projectBaseDir, $slug, $baseUrl);
+        echo '<li style="margin-bottom:6px;">';
+        echo ($thumb ? '<img src="'.htmlspecialchars($thumb).'" style="max-width:30px;vertical-align:middle;margin-right:8px;"/> ' : '') . $tag;
+        // Edit link
+        echo ' <a href="?edit_project='.$slug.'" style="background:#0099ff;color:#fff;padding:5px 10px;border-radius:4px;text-decoration:none;margin-left:8px;">Edit</a> ';
+        echo '<form method="POST" style="display:inline;margin-left:6px;" onsubmit="return confirm(\'WARNING: Deleting a project will NOT delete its posts. You must delete all posts in this project first. Are you sure you want to delete the project structure?\');">';
+        echo '<input type="hidden" name="project_action" value="delete">';
+        echo '<input type="hidden" name="project_name" value="'.$tag.'">';
+        echo '<button type="submit" class="danger">Delete</button>';
+        echo '</form></li>';
+    }
+    echo '</ul>';
+}else{
+    echo '<p>No projects yet.</p>';
 }
 ?>
 

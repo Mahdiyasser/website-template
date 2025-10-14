@@ -1,235 +1,328 @@
+/*
+ * Main Page Styles - Futuristic Dark & Light Themes
+ */
+
+/* --- Variable Definitions --- */
 :root {
-    --bg: #f8fbff;
-    --card: #ffffff;
-    --accent: #60aef6;
-    --muted: #6b7280;
-    --radius: 14px;
-    --shadow: 0 10px 30px rgba(16, 24, 40, 0.06);
-    --maxw: 1100px;
-    --gap: 20px;
+    /* FUTURISTIC DARK THEME (Default) */
+    --bg-primary: #12121e; /* Deep Space Blue/Black */
+    --bg-secondary: #1a1a2b; /* Slightly lighter card background */
+    --text-color: #e0e0ff; /* Light, slightly blue text */
+    --text-secondary: #9aa8b5;
+    --accent-color-1: #00e5ff; /* Electric Blue (Primary Action) */
+    --accent-color-2: #ff00ff; /* Neon Magenta (Secondary Accent/Headings) */
+    --card-shadow: 0 8px 30px rgba(0, 229, 255, 0.15); /* Light blue glow shadow */
+    --border-color: #2c2c40;
+    --hover-bg: #252538;
 }
 
-* {
-    box-sizing: border-box
+/* --- LIGHT THEME OVERRIDE --- */
+body.light-theme {
+    --bg-primary: #f0f0ff; /* Very light lavender */
+    --bg-secondary: #ffffff;
+    --text-color: #2c3e50;
+    --text-secondary: #7f8c8d;
+    --accent-color-1: #2980b9; /* Professional Blue */
+    --accent-color-2: #8e44ad; /* Deep Purple */
+    --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --border-color: #e0e0e9;
+    --hover-bg: #f5f5f5;
 }
 
-html,
+/* --- Global & Layout Styles --- */
+
 body {
-    height: 100%;
-    margin: 0;
-    font-family: Inter, Poppins, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial
+    font-family: 'Space Mono', monospace, sans-serif; /* Techy font stack */
+    background: var(--bg-primary);
+    color: var(--text-color);
+    padding: 30px 18px;
+    line-height: 1.6;
+    transition: background-color 0.4s, color 0.4s;
+    min-height: 100vh;
 }
 
-body {
-    background: var(--bg);
-    color: #111;
-    padding: 32px 20px
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: var(--bg-secondary);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: var(--card-shadow);
 }
 
-.wrap {
-    max-width: var(--maxw);
-    margin: 0 auto
-}
-
-header {
+.main-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 28px
+    align-items: center;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 12px
+.header-left {
+    width: 180px; /* To balance the toggle button on the right */
 }
 
 .logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--accent), #78d0ff);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
+    color: var(--accent-color-1);
+    font-size: 2.2em;
     font-weight: 700;
-    box-shadow: var(--shadow)
+    text-align: center;
+    flex-grow: 1; 
+    text-shadow: 0 0 5px var(--accent-color-2); /* Subtle neon glow */
 }
 
-h1 {
-    font-size: 1.25rem;
-    margin: 0
+.section-title {
+    color: var(--accent-color-2);
+    font-size: 1.6em;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 35px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
 }
 
-p.lead {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.95rem
-}
+/* --- Project Cards (Initial View) --- */
 
-.controls {
-    display: flex;
-    gap: 12px;
-    align-items: center
-}
-
-.search {
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid #e6f0ff;
-    background: #fff;
-    min-width: 220px
-}
-
-.btn {
-    background: var(--accent);
-    color: #fff;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 0;
-    cursor: pointer;
-    font-weight: 600
-}
-
-.ghost {
-    background: transparent;
-    border: 1px solid #dfeffd;
-    color: #0b1b2a;
-    padding: 9px 12px
-}
-
-.grid {
+.projects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: var(--gap)
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
 }
 
-.card {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 16px;
-    box-shadow: var(--shadow);
-    border: 1px solid #e9f5ff;
-    display: flex;
-    flex-direction: column;
-    gap: 12px
+.project-card, .post-card {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, border-color 0.3s, background-color 0.3s, box-shadow 0.3s;
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
 }
 
-.thumb {
-    height: 140px;
-    border-radius: 12px;
-    background: #eef7ff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden
+.project-card:hover, .post-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--accent-color-1);
+    background: var(--hover-bg);
+    box-shadow: 0 10px 40px rgba(0, 229, 255, 0.25); /* Stronger glow on hover */
 }
 
-.thumb img {
+.project-card-image {
+    height: 180px;
+    overflow: hidden;
+}
+
+.project-card-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover
+    object-fit: cover;
+    transition: transform 0.5s ease;
 }
 
-.card h3 {
+.project-card-content, .post-card-content {
+    padding: 20px;
+}
+
+.project-card-content h3, .post-card-content h3 {
+    color: var(--accent-color-1);
+    font-size: 1.5em;
+    margin-top: 0;
+    margin-bottom: 8px;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 5px;
+}
+
+.project-card-content p, .post-card-content p {
+    color: var(--text-secondary);
+    font-size: 0.9em;
     margin: 0;
-    font-size: 1.05rem
+    min-height: 40px;
 }
 
-.card p {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.92rem
-}
+/* --- Posts List (Filtered View) --- */
 
-.meta-row {
+.posts-list {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px
-}
-
-.posts-area {
-    display: none;
-    margin-top: 18px
-}
-
-.posts-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px
-}
-
-.back {
-    background: transparent;
-    border: 0;
-    color: var(--accent);
-    font-weight: 700;
-    cursor: pointer
+    flex-direction: column;
+    gap: 20px;
 }
 
 .post-card {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    padding: 12px
+    /* Override grid settings for list view */
+    transform: none; 
+    transition: transform 0.3s ease, border-color 0.3s, background-color 0.3s, box-shadow 0.3s;
 }
 
-.post-thumb {
-    width: 110px;
-    height: 76px;
+.post-card:hover {
+    transform: translateY(-4px); /* Smaller lift for list items */
+}
+
+.post-card-content h3 {
+    font-size: 1.3em; /* Slightly smaller title than project card */
+}
+
+.post-meta {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+    display: block;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.post-read-link {
+    display: inline-block;
+    color: var(--accent-color-2);
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: 15px;
+    border-bottom: 1px dashed var(--accent-color-2);
+    transition: color 0.2s;
+}
+
+.post-read-link:hover {
+    color: var(--accent-color-1);
+    border-bottom-color: var(--accent-color-1);
+}
+
+
+/* --- Buttons and Utility --- */
+
+.back-button {
+    background: none;
+    border: 1px solid var(--accent-color-1);
+    color: var(--accent-color-1);
+    padding: 10px 18px;
     border-radius: 8px;
-    overflow: hidden;
-    flex-shrink: 0
+    cursor: pointer;
+    margin-bottom: 30px;
+    transition: background 0.3s, color 0.3s;
+    display: block; 
+    width: fit-content;
+}
+.back-button:hover {
+    background: var(--accent-color-1);
+    color: var(--bg-primary);
 }
 
-.post-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover
+.smallbtn {
+    background: var(--border-color);
+    color: var(--text-color);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s ease, transform 0.1s ease;
+    width: 180px;
 }
 
-.post-info h4 {
-    margin: 0;
-    font-size: 1rem
+.smallbtn:hover {
+    background: var(--hover-bg);
+    transform: translateY(-1px);
 }
 
-.post-info p {
-    margin: 4px 0 0;
-    color: var(--muted);
-    font-size: 0.9rem
+.hidden {
+    display: none !important;
 }
 
-.empty {
-    padding: 36px;
-    border-radius: 12px;
-    background: linear-gradient(180deg, #fff, #f4fbff);
-    border: 1px dashed #dbeeff;
-    color: var(--muted);
-    text-align: center
+footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.8em;
 }
 
-@media (max-width:640px) {
-    .controls {
-        flex-direction: column;
-        align-items: flex-start
+/* --- Mobile Responsiveness (Max-width 768px) --- */
+@media (max-width: 768px) {
+    /* General Container Adjustments */
+    body {
+        padding: 10px; /* Reduce global padding */
     }
 
-    .thumb {
-        height: 120px
+    .container {
+        padding: 20px; /* Reduce container padding */
+        border-radius: 10px; /* Softer edges on mobile */
     }
 
-    .post-thumb {
-        width: 88px;
-        height: 64px
+    /* Header Adjustments */
+    .main-header {
+        flex-direction: column; /* Stack logo and button */
+        gap: 15px; /* Add space between stacked items */
+        margin-bottom: 20px;
     }
 
-    .search {
-        min-width: 0;
-        width: 100%
+    .header-left {
+        display: none; /* Hide the empty space div */
+    }
+
+    .logo {
+        font-size: 1.8em; /* Make logo smaller */
+        text-align: center;
+        width: 100%; /* Take full width */
+    }
+
+    .smallbtn {
+        width: 100%; /* Make theme toggle button full width */
+        max-width: 300px; /* Max width to prevent it from getting too wide on tablets */
+        margin: 0 auto;
+    }
+
+    /* View Adjustments - FIX FOR SECTION TITLE SIZE AND STACKING*/
+    .section-title {
+        font-size: 1.2em; /* Reduced for better fit on small screens */
+        margin-bottom: 30px; /* Slightly increased margin for stacked title */
+        letter-spacing: 1px;
+        line-height: 1.3; /* Added for better vertical spacing between lines */
+    }
+    
+    /* Project Grid and Cards Adjustments */
+    .projects-grid {
+        /* This will automatically stack cards as the minmax will fail on narrow screens */
+        grid-template-columns: 1fr; /* Force a single column layout */
+        gap: 20px;
+    }
+
+    .project-card, .post-card {
+        /* Reset hover effect for touchscreens to prevent accidental state lock */
+        transform: none; 
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .project-card:hover, .post-card:hover {
+        transform: none;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Use the softer shadow */
+    }
+
+    .project-card-image {
+        height: 150px; /* Slightly shorter image */
+    }
+
+    .project-card-content p {
+        min-height: auto; /* Remove fixed height for content on mobile */
+    }
+
+    /* Posts List Adjustments (Important for readability) */
+    .posts-list {
+        gap: 15px;
+    }
+
+    .post-card {
+        display: flex; /* Make post card content side-by-side or stack better */
+        flex-direction: column; /* Stack image and content vertically */
+    }
+
+    .post-card .project-card-image {
+        /* Make image less dominant in list view */
+        height: 100px; 
+        width: 100%; 
+    }
+
+    /* Footer Adjustments */
+    footer {
+        font-size: 0.75em;
     }
 }
