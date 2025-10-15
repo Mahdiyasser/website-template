@@ -710,7 +710,8 @@ HTML;
             }
 
             
-            $imagesHTML = buildImagesHTML($imagesToUse);
+                $imagesHTML = buildImagesHTML($uploadedImages); 
+
 
             // Build post HTML
             $postFileName = $slug . '.html';
