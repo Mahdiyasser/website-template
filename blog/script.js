@@ -95,15 +95,15 @@ function renderPosts(posts) {
         // 4. Meta (Formatted with Emojis)
         const postDate = new Date(post.date);
         
-        // Date part: "📅 October 11, 2025"
+        // Date part: "📅 October 11, 2025" (Using Calendar Emoji)
         const datePart = `📅 ${postDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`;
         
         let metaParts = [datePart];
 
-        // Time part: "🕓 04:25 PM" (Only if the date string in JSON included time)
+        // Time part: "⌚ 04:25 PM" (Using Watch Emoji)
         const timeRegex = /\s\d{2}:\d{2}/; 
         if (post.date && timeRegex.test(post.date)) {
-            const timePart = `🕓 ${postDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+            const timePart = `⌚ ${postDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`;
             metaParts.push(timePart);
         }
 
@@ -126,6 +126,7 @@ function renderPosts(posts) {
         const readMore = document.createElement('a');
         readMore.className = 'read-more';
         readMore.href = post.file || '#'; 
+        // Replaced problematic character with standard '»'
         readMore.textContent = 'Read Full Post »';
 
         // Append elements to the wrapper
@@ -145,7 +146,7 @@ function renderPosts(posts) {
 // --- Data Fetching ---
 
 /**
- * Fetches post data from the posts.json file.
+ * Fetches post data from the posts.json file and sorts them by date (newest first).
  */
 async function fetchPosts() {
     try {
@@ -153,7 +154,17 @@ async function fetchPosts() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const posts = await response.json();
+        let posts = await response.json();
+
+        // Sort posts from latest to oldest (kept this from your previous request)
+        posts.sort((a, b) => {
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
+            
+            // dateB - dateA ensures descending order (newest first).
+            return dateB - dateA;
+        });
+
         renderPosts(posts);
     } catch (error) {
         console.error("Could not fetch posts:", error);
