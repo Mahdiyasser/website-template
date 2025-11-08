@@ -3,7 +3,7 @@
 🗓️ **Date:** 2025-10-14 09:55  
 🌐 **Live Site:** https://mahdiyasser.site  
 🧱 **Version:** V10.0 — *“The Golden Build”*  
-📦 **Status:** FANTASTIC  
+📦 **Status:**   End-Of-Life  
 
 ---
 
